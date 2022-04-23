@@ -5,13 +5,57 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Eugene_Ambilight"
         mc:Ignorable="d"
-        Title="Eugene Ambilight - 1.0 Alpha" Height="250" Width="400" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
-    <Grid>
-        <Button x:Name="btnSend" Content="Button" HorizontalAlignment="Left" Margin="65,44,0,0" VerticalAlignment="Top" Height="30" Width="80" Click="btnSend_Click"/>
-        <TextBox x:Name="uriServer" HorizontalAlignment="Left" Margin="50,16,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="192.168.1.27"/>
-        <TextBlock x:Name="ResponseText" HorizontalAlignment="Left" Margin="170,21,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="188" Width="230" ScrollViewer.CanContentScroll="True"/>
-        <CheckBox x:Name="AmbilightState" Content="CheckBox" HorizontalAlignment="Left" Margin="30,99,0,0" VerticalAlignment="Top" Width="95" Checked="AmbilightState_Changed" Unchecked="AmbilightState_Changed"/>
+        Title="Eugene Ambilight - 1.0 Alpha" Height="365" Width="340" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" AllowsTransparency="True" WindowStyle="None" Loaded="Window_Loaded">
+    <Border BorderThickness="1" BorderBrush="#232b3e">
+        <Grid Background="#2d364c">
+            <Grid x:Name="TitleGrid" Height="35" Margin="0" VerticalAlignment="Top" Background="#2d364c" MouseDown="TitleGrid_MouseDown">
+                <Border BorderThickness="0,0,0,1" BorderBrush="#232b3e"/>
+                <Button x:Name="CloseButton" Style="{DynamicResource CloseButton}" BorderThickness="0,0,0,1" HorizontalAlignment="Right" Margin="0" Width="{Binding Height, ElementName=CloseButton}" Height="35" VerticalAlignment="Top" Foreground="#FF969AA5" Click="CloseButton_Click">
+                    <Viewbox Width="20" Height="20">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{Binding Foreground, ElementName=CloseButton}" />
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+                <Button x:Name="MinimizeButton" Style="{DynamicResource RegularButton}" HorizontalAlignment="Right" Margin="0,0,35,0" Width="{Binding Height, ElementName=MinimizeButton}" Height="35" VerticalAlignment="Top" Foreground="#FF969AA5" Click="MinimizeButton_Click">
+                    <Viewbox Width="20" Height="20">
+                        <Canvas Width="24" Height="24">
+                            <Path Margin="0,3,0,0" Data="M20,14H4V10H20" Fill="{Binding Foreground, ElementName=MinimizeButton}" />
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+                <TextBlock Margin="15,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Left" Text="Eugene Ambilight - 1.0 Alpha" FontFamily="Segoe UI Semibold" FontSize="14" Width="248"/>
+            </Grid>
+            <Grid x:Name="StartGrid" Margin="0,35,0,0">
+                <Grid x:Name="FirstStage">
+                    <TextBlock HorizontalAlignment="Center" Margin="0,25,0,0" TextWrapping="NoWrap" Text="Давай найдем устройство..." VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" Width="243" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,55,0,0" TextWrapping="NoWrap" Text="Как будем искать?" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" Width="175" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
+                    <Button x:Name="ManualBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="У меня есть адрес" Style="{DynamicResource ColorButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,126,0,0" Height="38" Width="158" MouseEnter="ManualBtn_MouseEnter" MouseLeave="ManualBtn_MouseLeave" Click="ManualBtn_Click"/>
+                    <Button x:Name="AutoBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Я не знаю адрес" Style="{DynamicResource ColorButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,169,0,0" Height="38" Width="158" MouseEnter="AutoBtn_MouseEnter" MouseLeave="AutoBtn_MouseLeave" Click="AutoBtn_Click"/>
+                    <Label x:Name="ManualLabel" Content="Тебе нужно будет только ввести адрес устройства." Margin="0,0,0,15" Foreground="#FF5FE464" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                    <Label x:Name="AutoLabel" Content="Будем сканировать и искать." Margin="0,0,0,15" Foreground="#FF5FE464" HorizontalAlignment="Center" Visibility="Hidden" VerticalAlignment="Bottom"/>
+                </Grid>
+            </Grid>
+            <Grid x:Name="MainGrid" Visibility="Collapsed">
+                <CheckBox x:Name="AmbilightState" Content="Состояние Ambilight" HorizontalAlignment="Left" Margin="10,43,0,0" VerticalAlignment="Top" Width="140" Checked="AmbilightState_Changed" Unchecked="AmbilightState_Changed"/>
+                <StatusBar Height="25" VerticalAlignment="Bottom">
+                    <Label x:Name="PingLabel" Content="Ping:" Padding="5,0,5,0"/>
+                    <Label x:Name="PointLabel" Content="X: 0 Y: 0" Padding="5,0,5,0"/>
+                </StatusBar>
+                <ListBox x:Name="DeviceList" Margin="0,68,0,0" Width="318" HorizontalAlignment="Center" VerticalAlignment="Top" Height="141" Background="{x:Null}" BorderBrush="{x:Null}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Height="50" Width="450">
+                                <Label Content="{Binding Link}" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top" Foreground="White" FontFamily="/Hided Files Online;component/Resources/#Gotham" FontSize="16"/>
 
-
-    </Grid>
+                                <Label Content="{Binding Incognito}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Foreground="White" FontFamily="/Hided Files Online;component/Resources/#Gotham" FontSize="12"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Button x:Name="btnSearch" Content="Поиск" HorizontalAlignment="Center" Margin="0,234,0,0" VerticalAlignment="Top" Height="30" Width="220" Click="btnSearch_Click"/>
+            </Grid>
+            <ProgressBar HorizontalAlignment="Stretch" Height="3" Margin="0,35,0,0" VerticalAlignment="Top" IsIndeterminate="True" Visibility="Hidden"/>
+        </Grid>
+    </Border>
 </Window>
