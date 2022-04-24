@@ -41,6 +41,7 @@ namespace Eugene_Ambilight
         }
         private Logger errLogger = LogManager.GetLogger("errLogger");
         private Logger debugLogger = LogManager.GetLogger("debugLogger");
+        private DeviceEntity targetDevice;
         HttpClient httpClient = new HttpClient();
         Random rnd = new Random();
         private async void btnSend_Click(object sender, RoutedEventArgs e)
@@ -128,30 +129,136 @@ namespace Eugene_Ambilight
         {
             if(AutoLabel.IsVisible)
                 await Helper.AnimateHeight(AnimType.Hide, AutoLabel, Speed.Fast);
-            await Helper.AnimateHeight(AnimType.Show, ManualLabel);
+            await Helper.AnimateHeight(AnimType.Show, ManualLabel, color: ColorText.Regular);
         }
 
         private async void ManualBtn_MouseLeave(object sender, MouseEventArgs e) 
-            => await Helper.AnimateHeight(AnimType.Hide, ManualLabel, Speed.Fast);
+            => await Helper.AnimateHeight(AnimType.Hide, ManualLabel, Speed.Normal);
 
         private async void AutoBtn_MouseEnter(object sender, MouseEventArgs e)
         {
             if (AutoLabel.IsVisible)
                 await Helper.AnimateHeight(AnimType.Hide, ManualLabel, Speed.Fast);
-            await Helper.AnimateHeight(AnimType.Show, AutoLabel);
+            await Helper.AnimateHeight(AnimType.Show, AutoLabel, color: ColorText.Regular);
         }
 
         private async void AutoBtn_MouseLeave(object sender, MouseEventArgs e)
-            => await Helper.AnimateHeight(AnimType.Hide, AutoLabel, Speed.Fast);
+            => await Helper.AnimateHeight(AnimType.Hide, AutoLabel, Speed.Normal);
 
         private async void ManualBtn_Click(object sender, RoutedEventArgs e)
         {
             await Helper.AnimateHeight(AnimType.Hide, FirstStage);
+            await Helper.AnimateHeight(AnimType.Show, SecondStageManual);
+            IPTextBox.Focus();
+            IPTextBox.SelectionStart = IPTextBox.Text.Length;
+            IPTextBox.SelectionLength = 0;
         }
 
         private async void AutoBtn_Click(object sender, RoutedEventArgs e)
         {
             await Helper.AnimateHeight(AnimType.Hide, FirstStage);
+        }
+
+        private async void SSMBackBtn_Click(object sender, RoutedEventArgs e)
+        {
+            await Helper.AnimateHeight(AnimType.Hide, SecondStageManual);
+            await Helper.AnimateHeight(AnimType.Show, FirstStage);
+        }
+        public async Task<bool> GoError(string content)
+        {
+            SSMInfoLabel.Content = content;
+            await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+            return false;
+        }
+        private async Task<bool> CheckIP()
+        {
+            IPTextBox.Text = IPTextBox.Text.Replace(',', '.');
+            string text = IPTextBox.Text.Trim();
+            if (text.Length == 0)
+                return await GoError("Адрес не может быть пустым");
+            else if(text.Contains(" "))
+                return await GoError("Никаких пробелов в адресе");
+            else if(text.Count(a => a == '.') != 3 || !text.StartsWith("192.168."))
+                return await GoError("Неверный формат адреса");
+            return true;
+        }
+
+        private async Task<DeviceEntity?> FindDevice(string ip, bool ignoreOutputs = false)
+        {
+            HttpClient pingClient = new();
+            pingClient.Timeout = TimeSpan.FromSeconds(5);
+            var address = $"http://{ip}/";
+            SSMInfoLabel.Content = $"Ждем ответа от {ip}...";
+            await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel);
+            CancellationTokenSource cancellationTokenSource = new();
+            try
+            {
+                pingClient.BaseAddress = new Uri(address);
+                var response = await pingClient.GetAsync("/ping", cancellationTokenSource.Token);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var responseJson = JsonConvert.DeserializeObject<DeviceEntity>(jsonString);
+                    if (responseJson == null) 
+                        throw new ArgumentNullException();
+                    InfoProgressBar.Visibility = Visibility.Hidden;
+                    SSMInfoLabel.Content = $"Успешно!";
+                    await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Success);
+                    await Helper.CreateDelay(500);
+                    targetDevice = responseJson;
+                    return responseJson;
+                }
+                else
+                {
+                    InfoProgressBar.Visibility = Visibility.Hidden;
+                    SSMInfoLabel.Content = $"Видимо не туда стучимся. Код ответа {(int)response.StatusCode}.";
+                    await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                InfoProgressBar.Visibility = Visibility.Hidden;
+                if (ex is ArgumentNullException || ex is JsonReaderException)
+                    SSMInfoLabel.Content = $"Устройство ответило неверно. Проверь версию прошивки.";
+                else
+                    SSMInfoLabel.Content = $"Устройство не отвечает. Проверь подключение.";
+                await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                cancellationTokenSource.Cancel(); pingClient.CancelPendingRequests();
+            }
+            return null;
+        }
+        private void IPTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                CheckIPBtn_Click(sender, e);
+        }
+        private async void CheckIPBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (await CheckIP())
+            {
+                SSMInfoLabel.Content = "Сейчас проверим доступность устройства";
+                InfoProgressBar.Visibility = Visibility.Visible;
+                await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Regular);
+                await Helper.CreateDelay(500);
+                if (await FindDevice(IPTextBox.Text) != null)
+                {
+                    await Helper.AnimateHeight(AnimType.Hide, SecondStageManual);
+                    TSDeviceNameLabel.Text = targetDevice.Name;
+                    TSDeviceTokenLabel.Text = targetDevice.Token;
+                    TSDeviceLedsLabel.Text = $"{targetDevice.Leds} светодиодов";
+                    await Helper.AnimateHeight(AnimType.Show, ThirdStage);
+                }
+            }
+        }
+
+        private async void CancelDeviceBtn_Click(object sender, RoutedEventArgs e)
+        {
+            await Helper.AnimateHeight(AnimType.Hide, ThirdStage);
+            await Helper.AnimateHeight(AnimType.Show, SecondStageManual);
+            IPTextBox.Focus();
+            IPTextBox.SelectionStart = IPTextBox.Text.Length;
+            IPTextBox.SelectionLength = 0;
         }
 
         

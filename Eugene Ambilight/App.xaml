@@ -33,7 +33,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Name="border" 
-        				BorderThickness="0,0,0,1"
+        				BorderThickness="{TemplateBinding BorderThickness}"
         				Padding="4,2" 
         				BorderBrush="#232b3e" 
         				CornerRadius="0" 
@@ -167,7 +167,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ColorButton" TargetType="Button">
+        <Style x:Key="SuccessButton" TargetType="Button">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
 
             <Setter Property="FocusVisualStyle" Value="{StaticResource MyFocusVisual}" />
@@ -221,6 +221,251 @@
                             </Trigger>
 
                         </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CancelButton" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+
+            <Setter Property="FocusVisualStyle" Value="{StaticResource MyFocusVisual}" />
+            <Setter Property="Background" Value="#FFAFA24C"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF8E7F38"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontFamily" Value="/Hided Files Online;component/Resources/#Gotham"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="border" 
+        				BorderThickness="1"
+        				Padding="4,2" 
+        				BorderBrush="#FF8E7F38" 
+        				CornerRadius="5" 
+        				Background="{TemplateBinding Background}">
+                            <Grid >
+
+                                <ContentPresenter HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center" Name="content"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="Button.MouseEnter">
+                                <EventTrigger.Actions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetProperty="Background.Color"
+                                        To="#FF8E7F38" AutoReverse="False" Duration="0:0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger.Actions>
+
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="Button.MouseLeave">
+                                <EventTrigger.Actions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetProperty="Background.Color"
+                                        To="#FFAFA24C" AutoReverse="False" Duration="0:0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger.Actions>
+                            </EventTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.7" />
+                                <Setter Property="Background" Value="#FF7C724D" />
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Color x:Key="ControlForeground">#181818</Color>
+        <Color x:Key="ControlReadOnlyForeground">#383838</Color>
+        <Color x:Key="ControlDisabledForeground">#686868</Color>
+
+        <Color x:Key="ControlBackground">#f7f7f9</Color>
+        <Color x:Key="ControlHoveredBackground">#fafafc</Color>
+        <Color x:Key="ControlFocusedBackground">#fdfdff</Color>
+        <Color x:Key="ControlReadOnlyBackground">#f2f2f4</Color>
+        <Color x:Key="ControlDisabledBackground">#efeff2</Color>
+
+        <Color x:Key="ControlBorder">#383838</Color>
+        <Color x:Key="ControlHoveredBorder">#4CAF50</Color>
+        <Color x:Key="ControlFocusedBorder">#388E3C</Color>
+        <Color x:Key="ControlReadOnlyBorder">#484848</Color>
+        <Color x:Key="ControlDisabledBorder">#787878</Color>
+
+        <!-- creating a control template for TextBox -->
+        <ControlTemplate x:Key="TextBoxTemplateBase" TargetType="{x:Type TextBox}">
+            <Grid x:Name="root" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}">
+                <!-- managing visual states to change controls styles on different states -->
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <Storyboard>
+                                <DoubleAnimation BeginTime="00:00:00.000" Duration="00:00:00.500"
+                                             From="1" To="0"
+                                             Storyboard.TargetProperty="Opacity"
+                                             Storyboard.TargetName="hoverBorder"/>
+                            </Storyboard>
+                        </VisualState>
+                        <VisualState x:Name="MouseOver">
+                            <Storyboard>
+                                <DoubleAnimation BeginTime="00:00:00.000" Duration="00:00:00.500"
+                                             From="0" To="1"
+                                             Storyboard.TargetProperty="Opacity"
+                                             Storyboard.TargetName="hoverBorder"/>
+                            </Storyboard>
+                        </VisualState>
+                        <VisualState x:Name="Disabled">
+                            <Storyboard>
+                                <ColorAnimationUsingKeyFrames Storyboard.TargetName="normalBorder"
+                                                          Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)">
+                                    <EasingColorKeyFrame KeyTime="0" Value="{StaticResource ControlDisabledBackground}" />
+                                </ColorAnimationUsingKeyFrames>
+                                <ColorAnimationUsingKeyFrames Storyboard.TargetName="normalBorder"
+                                                          Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)">
+                                    <EasingColorKeyFrame KeyTime="0" Value="{StaticResource ControlDisabledBorder}" />
+                                </ColorAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </VisualState>
+                        <VisualState x:Name="ReadOnly">
+                            <Storyboard>
+                                <ColorAnimationUsingKeyFrames Storyboard.TargetName="normalBorder"
+                                                          Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)">
+                                    <EasingColorKeyFrame KeyTime="0" Value="{StaticResource ControlReadOnlyBackground}" />
+                                </ColorAnimationUsingKeyFrames>
+                                <ColorAnimationUsingKeyFrames Storyboard.TargetName="normalBorder"
+                                                          Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)">
+                                    <EasingColorKeyFrame KeyTime="0" Value="{StaticResource ControlReadOnlyBorder}" />
+                                </ColorAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </VisualState>
+                    </VisualStateGroup>
+                    <VisualStateGroup x:Name="FocusStates">
+                        <VisualState x:Name="Focused">
+                            <Storyboard>
+                                <DoubleAnimation BeginTime="00:00:00.000" Duration="00:00:00.300"
+                                             From="0" To="1"
+                                             Storyboard.TargetProperty="Opacity"
+                                             Storyboard.TargetName="focusBorder"/>
+                            </Storyboard>
+                        </VisualState>
+                        <VisualState x:Name="Unfocused">
+                            <Storyboard>
+                                <DoubleAnimation BeginTime="00:00:00.000" Duration="00:00:00.700"
+                                             From="1" To="0"
+                                             Storyboard.TargetProperty="Opacity"
+                                             Storyboard.TargetName="focusBorder"/>
+                            </Storyboard>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+
+                <!-- main border, styling the border-brush and background for Normal state -->
+                <Border x:Name="normalBorder" 
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                        CornerRadius="5"
+                    BorderThickness="{TemplateBinding BorderThickness}"/>
+
+                <!-- styling border-brush and background-color for MouseOver state -->
+                <Border x:Name="hoverBorder" Opacity="0"
+                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="{StaticResource ControlHoveredBorder}"/>
+                    </Border.BorderBrush>
+                    <Border.Background>
+                        <SolidColorBrush Color="{StaticResource ControlHoveredBackground}"/>
+                    </Border.Background>
+                </Border>
+
+                <!-- styling border-brush and background-color for Focused state -->
+                <Border x:Name="focusBorder" Opacity="0" CornerRadius="5"
+                    BorderThickness="{TemplateBinding BorderThickness}">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="{StaticResource ControlFocusedBorder}"/>
+                    </Border.BorderBrush>
+                    <Border.Background>
+                        <SolidColorBrush Color="{StaticResource ControlFocusedBackground}"/>
+                    </Border.Background>
+                </Border>
+
+                <!-- TextBox uses a ScrollViewer named PART_ContentHost as its content-presenter -->
+                <ScrollViewer x:Name="PART_ContentHost"
+                          Padding="{TemplateBinding Padding}"
+                          BorderThickness="0" 
+                          IsTabStop="False" 
+                          Margin="2" 
+                          Background="{x:Null}"
+                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                          TextElement.Foreground="{TemplateBinding Foreground}"/>
+
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground">
+                        <Setter.Value>
+                            <SolidColorBrush Color="{StaticResource ControlDisabledForeground}"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+                <Trigger Property="IsReadOnly" Value="True">
+                    <Setter Property="Foreground">
+                        <Setter.Value>
+                            <SolidColorBrush Color="{StaticResource ControlReadOnlyForeground}"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <!-- every TextBox with property Style="{StaticResource TextBoxBaseStyle}" will use this style -->
+        <Style x:Key="TextBoxBaseStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource ControlBackground}"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource ControlForeground}"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Padding" Value="8 4"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource ControlBorder}"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template" Value="{StaticResource TextBoxTemplateBase}"/>
+        </Style>
+
+        <!-- and if you want to all TextBox `es to use this style, you have to add this line of code: -->
+        <Style x:Key="{x:Type TextBox}" TargetType="{x:Type TextBox}" BasedOn="{StaticResource TextBoxBaseStyle}" />
+
+        <Style x:Key="CheckBoxFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Border>
+                            <Rectangle 
+            Margin="15,0,0,0"
+            StrokeThickness="1"
+            Stroke="#60000000"
+            StrokeDashArray="1 2"/>
+                        </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

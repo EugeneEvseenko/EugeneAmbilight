@@ -10,10 +10,10 @@ namespace Eugene_Ambilight.Classes
     public class DeviceEntity
     {
         [JsonProperty("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [JsonProperty("token")]
-        public string? Token { get; set; }
+        public string Token { get; set; }
         [JsonProperty("leds")]
-        public int? Leds { get; set; }
+        public int Leds { get; set; }
     }
 }

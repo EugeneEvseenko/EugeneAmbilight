@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace Eugene_Ambilight.Classes
@@ -18,9 +19,26 @@ namespace Eugene_Ambilight.Classes
     public static class Helper
     {
         public static Dictionary<string, double> HeightDict = new();
-        public static async Task AnimateHeight(AnimType animType, FrameworkElement element, Speed speed = Speed.Slow)
+        public static DoubleAnimation opacityShow = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(300))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseIn }
+        };
+        public static DoubleAnimation opacityHide = new DoubleAnimation(0.0, TimeSpan.FromMilliseconds(300))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
+        };
+        
+        public static async Task AnimateHeight(AnimType animType, FrameworkElement element, Speed speed = Speed.Normal, ColorText? color = null)
         {
             if (!HeightDict.ContainsKey(element.Name)) HeightDict.Add(element.Name, element.ActualHeight);
+            if (color.HasValue)
+                if (element is Control control) 
+                    control.Foreground = new SolidColorBrush(
+                        color.Value == ColorText.Success 
+                            ? Colors.LightGreen 
+                            : color.Value == ColorText.Error 
+                                ? Colors.IndianRed 
+                                : Colors.LightGray);
             if (animType == AnimType.Show)
             {
                 element.Visibility = Visibility.Visible;
@@ -28,6 +46,7 @@ namespace Eugene_Ambilight.Classes
                 {
                     EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut }
                 };
+                element.BeginAnimation(FrameworkElement.OpacityProperty, opacityShow);
                 element.BeginAnimation(FrameworkElement.HeightProperty, animation);
             }
             else
@@ -40,12 +59,13 @@ namespace Eugene_Ambilight.Classes
                 {
                     element.Visibility = Visibility.Hidden;
                 };
+                element.BeginAnimation(FrameworkElement.OpacityProperty, opacityHide);
                 element.BeginAnimation(FrameworkElement.HeightProperty, animation);
             }
             await Task.Delay((int)speed);
         }
 
-        public static async Task AnimateTooltip(AnimType animType, Label label, Speed speed = Speed.Fast)
+        public static async Task AnimateTooltip(AnimType animType, Label label, Speed speed = Speed.Normal)
         {
             await AnimateHeight(animType, label, speed);
         }
@@ -64,7 +84,7 @@ namespace Eugene_Ambilight.Classes
                 Thread.Sleep(millis);
             });
         }
-        public static Color GetPixel(int x, int y)
+        public static System.Drawing.Color GetPixel(int x, int y)
         {
             using (var bitmap = new Bitmap(1, 1))
             {
