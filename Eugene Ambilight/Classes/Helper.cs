@@ -29,7 +29,7 @@ namespace Eugene_Ambilight.Classes
             EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
         };
         
-        public static async Task AnimateHeight(AnimType animType, FrameworkElement element, Speed speed = Speed.Normal, ColorText? color = null)
+        public static async Task AnimateHeight(AnimType animType, FrameworkElement element, Speed speed = Speed.Normal, ColorText? color = null, bool withoutDelay = true)
         {
             if (!HeightDict.ContainsKey(element.Name)) HeightDict.Add(element.Name, element.ActualHeight);
             if (color.HasValue)
@@ -56,14 +56,16 @@ namespace Eugene_Ambilight.Classes
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
-                animation.Completed += delegate (object? sender, EventArgs e)
-                {
-                    element.Visibility = Visibility.Hidden;
-                };
+                if(!withoutDelay)
+                    animation.Completed += delegate (object? sender, EventArgs e)
+                    {
+                        element.Visibility = Visibility.Hidden;
+                    };
                 element.BeginAnimation(UIElement.OpacityProperty, opacityHide);
                 element.BeginAnimation(FrameworkElement.HeightProperty, animation);
             }
-            await Task.Delay((int)speed);
+            if(!withoutDelay)
+                await Task.Delay((int)speed);
         }
 
         public static async Task AnimateTooltip(AnimType animType, Label label, Speed speed = Speed.Normal)

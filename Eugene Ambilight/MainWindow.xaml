@@ -39,7 +39,7 @@
                     <Label x:Name="AutoLabel" Content="Будем сканировать и искать." Margin="0,0,0,15" Foreground="#FF5FE464" HorizontalAlignment="Center" Visibility="Hidden" VerticalAlignment="Bottom"/>
                 </Grid>
                 <Grid x:Name="SecondStageManual" Visibility="Hidden">
-                    <Button x:Name="SSMBackBtn" Style="{DynamicResource RegularButton}" BorderThickness="0" HorizontalAlignment="Left" Margin="0,0,0,0" Width="{Binding Height, ElementName=SSMBackBtn}" Height="35" VerticalAlignment="Top" Foreground="#FF969AA5" Click="SSMBackBtn_Click">
+                    <Button x:Name="SSMBackBtn" Style="{DynamicResource RegularButton}" BorderThickness="0" HorizontalAlignment="Left" Margin="0,0,0,0" Width="{Binding Height, ElementName=SSMBackBtn}" Height="35" VerticalAlignment="Top" Foreground="#FF969AA5" Click="BackToFirstStage">
                         <Viewbox Width="20" Height="20">
                             <Canvas Width="24" Height="24">
                                 <Path Data="m19 12h-13m6-7-7 7 7 7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" StrokeThickness="2"  Fill="{Binding Foreground, ElementName=SSMBackBtn}" />
@@ -53,14 +53,22 @@
                     <Label x:Name="SSMInfoLabel" Content="" Margin="0,0,0,15" Foreground="#FF5FE464" HorizontalAlignment="Center" Visibility="Hidden" VerticalAlignment="Bottom"/>
 
                 </Grid>
-                <Grid x:Name="SecondStageAuto">
+                <Grid x:Name="SecondStageAuto" Visibility="Visible">
+                    <Button x:Name="SSABackBtn" Style="{DynamicResource RegularButton}" BorderThickness="0" HorizontalAlignment="Left" Margin="0,0,0,0" Width="{Binding Height, ElementName=SSMBackBtn}" Height="35" VerticalAlignment="Top" Foreground="#FF969AA5" Click="BackToFirstStage">
+                        <Viewbox Width="20" Height="20">
+                            <Canvas Width="24" Height="24">
+                                <Path Data="m19 12h-13m6-7-7 7 7 7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" StrokeThickness="2"  Fill="{Binding Foreground, ElementName=SSMBackBtn}" />
+                            </Canvas>
+                        </Viewbox>
+                    </Button>
                     <TextBlock HorizontalAlignment="Center" Margin="0,25,0,0" TextWrapping="NoWrap" Text="Необходимы уточнения" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
                     <TextBlock HorizontalAlignment="Center" Margin="0,85,0,0" TextWrapping="NoWrap" Text="Начальный адрес" VerticalAlignment="Top" Foreground="White" Height="19" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
-                    <TextBox x:Name="StartAddress" Text="192.168."  HorizontalAlignment="Center" SelectionBrush="{Binding BorderBrush, ElementName=StartAddress}"  VerticalAlignment="Top" FontFamily="Segoe UI Semibold" Width="120" HorizontalContentAlignment="Center" BorderThickness="2" Height="28" Margin="0,109,0,0"/>
+                    <TextBox x:Name="StartAddress" Text="192.168."  HorizontalAlignment="Center" SelectionBrush="{Binding BorderBrush, ElementName=StartAddress}"  VerticalAlignment="Top" FontFamily="Segoe UI Semibold" Width="120" HorizontalContentAlignment="Center" BorderThickness="2" Height="28" Margin="0,109,0,0" KeyUp="Address_KeyUp"/>
                     <TextBlock HorizontalAlignment="Center" Margin="0,145,0,0" TextWrapping="NoWrap" Text="Конечный адрес" VerticalAlignment="Top" Foreground="White" Height="19" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
-                    <TextBox x:Name="EndAddress" Text="192.168."  HorizontalAlignment="Center" SelectionBrush="{Binding BorderBrush, ElementName=StartAddress}"  VerticalAlignment="Top" FontFamily="Segoe UI Semibold" Width="120" HorizontalContentAlignment="Center" BorderThickness="2" Height="28" Margin="0,169,0,0"/>
-                    <Button x:Name="CheckAutoIPBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Поиск" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,216,0,0" Height="38" Width="100"/>
+                    <TextBox x:Name="EndAddress" Text="192.168."  HorizontalAlignment="Center" SelectionBrush="{Binding BorderBrush, ElementName=StartAddress}"  VerticalAlignment="Top" FontFamily="Segoe UI Semibold" Width="120" HorizontalContentAlignment="Center" BorderThickness="2" Height="28" Margin="0,169,0,0" KeyUp="Address_KeyUp"/>
+                    <Button x:Name="CheckAutoIPBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Поиск" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,216,0,0" Height="38" Width="100" Click="CheckAutoIPBtn_Click"/>
                     <TextBlock HorizontalAlignment="Center" Margin="0,55,0,0" TextWrapping="NoWrap" Text="Можешь оставить как есть, выполним полное сканирование" VerticalAlignment="Top" Foreground="White" Height="19" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+                    <Label x:Name="SSAInfoLabel" Content="" Margin="0,0,0,15" Foreground="#FF5FE464" HorizontalAlignment="Center" Visibility="Visible" VerticalAlignment="Bottom"/>
 
                 </Grid>
                 <Grid x:Name="ThirdStage" Visibility="Hidden">

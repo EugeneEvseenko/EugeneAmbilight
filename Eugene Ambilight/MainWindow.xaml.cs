@@ -158,29 +158,39 @@ namespace Eugene_Ambilight
         private async void AutoBtn_Click(object sender, RoutedEventArgs e)
         {
             await Helper.AnimateHeight(AnimType.Hide, FirstStage);
+            await Helper.AnimateHeight(AnimType.Show, SecondStageAuto);
+            StartAddress.Focus();
+            StartAddress.SelectionStart = StartAddress.Text.Length;
+            StartAddress.SelectionLength = 0;
         }
 
-        private async void SSMBackBtn_Click(object sender, RoutedEventArgs e)
+        private async void BackToFirstStage(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateHeight(AnimType.Hide, SecondStageManual);
+            await Helper.AnimateHeight(AnimType.Hide, (e.Source as Button)?.Name == SSMBackBtn.Name ? SecondStageManual : SecondStageAuto);
             await Helper.AnimateHeight(AnimType.Show, FirstStage);
         }
-        public async Task<bool> GoError(string content)
+        public static async Task<bool> GoError(Label errLabel, string? content = null, bool hideError = false)
         {
-            SSMInfoLabel.Content = content;
-            await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+            if (hideError) { 
+                await Helper.AnimateHeight(AnimType.Hide, errLabel, withoutDelay: true); 
+                return false; 
+            }
+            errLabel.Content = content;
+            await Helper.AnimateHeight(AnimType.Show, errLabel, color: ColorText.Error);
             return false;
         }
-        private async Task<bool> CheckIP()
+        private static async Task<bool> CheckIP(TextBox textBox, Label errLabel)
         {
-            IPTextBox.Text = IPTextBox.Text.Replace(',', '.');
-            string text = IPTextBox.Text.Trim();
+            if(errLabel.IsVisible)
+                await GoError(errLabel, hideError: true);
+            textBox.Text = textBox.Text.Replace(',', '.');
+            string text = textBox.Text.Trim();
             if (text.Length == 0)
-                return await GoError("Адрес не может быть пустым");
+                return await GoError(errLabel, "Адрес не может быть пустым");
             else if(text.Contains(" "))
-                return await GoError("Никаких пробелов в адресе");
-            else if(text.Count(a => a == '.') != 3 || !text.StartsWith("192.168."))
-                return await GoError("Неверный формат адреса");
+                return await GoError(errLabel, "Никаких пробелов в адресе");
+            else if(text.Count(a => a == '.') != 3/* || !text.StartsWith("192.168.")*/) // 🤷‍♂️
+                return await GoError(errLabel, "Неверный формат адреса");
             return true;
         }
 
@@ -213,18 +223,24 @@ namespace Eugene_Ambilight
                 else
                 {
                     InfoProgressBar.Visibility = Visibility.Hidden;
-                    SSMInfoLabel.Content = $"Видимо не туда стучимся. Код ответа {(int)response.StatusCode}.";
-                    await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                    if (!ignoreOutputs)
+                    {
+                        SSMInfoLabel.Content = $"Видимо не туда стучимся. Код ответа {(int)response.StatusCode}.";
+                        await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 InfoProgressBar.Visibility = Visibility.Hidden;
-                if (ex is ArgumentNullException || ex is JsonReaderException)
-                    SSMInfoLabel.Content = $"Устройство ответило неверно. Проверь версию прошивки.";
-                else
-                    SSMInfoLabel.Content = $"Устройство не отвечает. Проверь подключение.";
-                await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                if (!ignoreOutputs)
+                {
+                    if (ex is ArgumentNullException || ex is JsonReaderException)
+                        SSMInfoLabel.Content = $"Устройство ответило неверно. Проверь версию прошивки.";
+                    else
+                        SSMInfoLabel.Content = $"Устройство не отвечает. Проверь подключение.";
+                    await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                }
                 cancellationTokenSource.Cancel(); pingClient.CancelPendingRequests();
             }
             return null;
@@ -236,7 +252,7 @@ namespace Eugene_Ambilight
         }
         private async void CheckIPBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (await CheckIP())
+            if (await CheckIP(IPTextBox, SSMInfoLabel))
             {
                 SSMInfoLabel.Content = "Сейчас проверим доступность устройства";
                 InfoProgressBar.Visibility = Visibility.Visible;
@@ -268,6 +284,22 @@ namespace Eugene_Ambilight
             Settings.Default.Save();
             if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
             await Helper.AnimateColor(Colors.LightGreen, DeviceState);
+        }
+
+        private async void CheckAutoIPBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (await CheckIP(StartAddress, SSAInfoLabel))
+                if (await CheckIP(EndAddress, SSAInfoLabel))
+                {
+
+                }
+            
+        }
+
+        private void Address_KeyUp(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+                CheckAutoIPBtn_Click(sender, e);
         }
     }
 }
