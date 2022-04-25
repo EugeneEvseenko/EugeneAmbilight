@@ -1,5 +1,6 @@
 ﻿using Eugene_Ambilight.Classes;
 using Eugene_Ambilight.Enums;
+using Eugene_Ambilight.Properties;
 using Newtonsoft.Json;
 using NLog;
 using System;
@@ -261,6 +262,12 @@ namespace Eugene_Ambilight
             IPTextBox.SelectionLength = 0;
         }
 
-        
+        private async void ConfirmDeviceBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.Default.DeviceInfo = JsonConvert.SerializeObject(targetDevice);
+            Settings.Default.Save();
+            if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
+            await Helper.AnimateColor(Colors.LightGreen, DeviceState);
+        }
     }
 }

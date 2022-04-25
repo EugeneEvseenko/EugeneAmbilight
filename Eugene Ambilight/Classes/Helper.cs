@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 
 namespace Eugene_Ambilight.Classes
 {
@@ -46,7 +47,7 @@ namespace Eugene_Ambilight.Classes
                 {
                     EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut }
                 };
-                element.BeginAnimation(FrameworkElement.OpacityProperty, opacityShow);
+                element.BeginAnimation(UIElement.OpacityProperty, opacityShow);
                 element.BeginAnimation(FrameworkElement.HeightProperty, animation);
             }
             else
@@ -59,7 +60,7 @@ namespace Eugene_Ambilight.Classes
                 {
                     element.Visibility = Visibility.Hidden;
                 };
-                element.BeginAnimation(FrameworkElement.OpacityProperty, opacityHide);
+                element.BeginAnimation(UIElement.OpacityProperty, opacityHide);
                 element.BeginAnimation(FrameworkElement.HeightProperty, animation);
             }
             await Task.Delay((int)speed);
@@ -69,12 +70,22 @@ namespace Eugene_Ambilight.Classes
         {
             await AnimateHeight(animType, label, speed);
         }
-        public static void Animate(AnimType animType, FrameworkElement element, DependencyProperty property)
+        public static async Task AnimateColor(System.Windows.Media.Color toColor, FrameworkElement element, Speed speed = Speed.MegaSlow)
         {
-            if (animType == AnimType.Show)
+            var animation = new ColorAnimation(
+                toColor, TimeSpan.FromMilliseconds((double)speed)) 
+                { 
+                    EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut } 
+                };
+            if(element is Shape shape)
             {
-                element.Visibility = Visibility.Visible;
-
+                shape.Fill.BeginAnimation(SolidColorBrush.ColorProperty, animation);
+                await Task.Delay((int)speed);
+            }
+            if (element is Control control)
+            {
+                control.Background.BeginAnimation(SolidColorBrush.ColorProperty, animation);
+                await Task.Delay((int)speed);
             }
         }
         public static Task CreateDelay(int millis)

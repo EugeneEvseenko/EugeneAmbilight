@@ -9,7 +9,11 @@
     <Border BorderThickness="1" BorderBrush="#232b3e">
         <Grid Background="#2d364c">
             <Grid x:Name="TitleGrid" Height="35" Margin="0" VerticalAlignment="Top" Background="#2d364c" MouseDown="TitleGrid_MouseDown">
-                <Border BorderThickness="0,0,0,1" BorderBrush="#232b3e"/>
+                <Border BorderThickness="0,0,0,1" BorderBrush="#232b3e"></Border>
+                <StackPanel Orientation="Horizontal" Margin="0,0,75,0">
+                    <Ellipse x:Name="DeviceState" Stroke="#232b3e" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" Fill="IndianRed" ToolTip="Нет подключения"/>
+                    <TextBlock x:Name="TitleTB" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Left" Text="Eugene Ambilight - 1.0 Alpha" FontFamily="Segoe UI Semibold" FontSize="14" Width="224" Margin="10,0,0,0"/>
+                </StackPanel>
                 <Button x:Name="CloseButton" Style="{DynamicResource CloseButton}" BorderThickness="0,0,0,1" HorizontalAlignment="Right" Margin="0" Width="{Binding Height, ElementName=CloseButton}" Height="35" VerticalAlignment="Top" Foreground="#FF969AA5" Click="CloseButton_Click">
                     <Viewbox Width="20" Height="20">
                         <Canvas Width="24" Height="24">
@@ -24,10 +28,9 @@
                         </Canvas>
                     </Viewbox>
                 </Button>
-                <TextBlock Margin="15,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Left" Text="Eugene Ambilight - 1.0 Alpha" FontFamily="Segoe UI Semibold" FontSize="14" Width="248"/>
             </Grid>
             <Grid x:Name="StartGrid" Margin="0,35,0,0">
-                <Grid x:Name="FirstStage" Visibility="Visible">
+                <Grid x:Name="FirstStage" Visibility="Hidden">
                     <TextBlock HorizontalAlignment="Center" Margin="0,25,0,0" TextWrapping="NoWrap" Text="Давай найдем устройство..." VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" Width="243" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
                     <TextBlock HorizontalAlignment="Center" Margin="0,55,0,0" TextWrapping="NoWrap" Text="Как будем искать?" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" Width="175" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
                     <Button x:Name="ManualBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="У меня есть адрес" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,126,0,0" Height="38" Width="158" MouseEnter="ManualBtn_MouseEnter" MouseLeave="ManualBtn_MouseLeave" Click="ManualBtn_Click"/>
@@ -50,12 +53,22 @@
                     <Label x:Name="SSMInfoLabel" Content="" Margin="0,0,0,15" Foreground="#FF5FE464" HorizontalAlignment="Center" Visibility="Hidden" VerticalAlignment="Bottom"/>
 
                 </Grid>
+                <Grid x:Name="SecondStageAuto">
+                    <TextBlock HorizontalAlignment="Center" Margin="0,25,0,0" TextWrapping="NoWrap" Text="Необходимы уточнения" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,85,0,0" TextWrapping="NoWrap" Text="Начальный адрес" VerticalAlignment="Top" Foreground="White" Height="19" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+                    <TextBox x:Name="StartAddress" Text="192.168."  HorizontalAlignment="Center" SelectionBrush="{Binding BorderBrush, ElementName=StartAddress}"  VerticalAlignment="Top" FontFamily="Segoe UI Semibold" Width="120" HorizontalContentAlignment="Center" BorderThickness="2" Height="28" Margin="0,109,0,0"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,145,0,0" TextWrapping="NoWrap" Text="Конечный адрес" VerticalAlignment="Top" Foreground="White" Height="19" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+                    <TextBox x:Name="EndAddress" Text="192.168."  HorizontalAlignment="Center" SelectionBrush="{Binding BorderBrush, ElementName=StartAddress}"  VerticalAlignment="Top" FontFamily="Segoe UI Semibold" Width="120" HorizontalContentAlignment="Center" BorderThickness="2" Height="28" Margin="0,169,0,0"/>
+                    <Button x:Name="CheckAutoIPBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Поиск" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,216,0,0" Height="38" Width="100"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,55,0,0" TextWrapping="NoWrap" Text="Можешь оставить как есть, выполним полное сканирование" VerticalAlignment="Top" Foreground="White" Height="19" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+
+                </Grid>
                 <Grid x:Name="ThirdStage" Visibility="Hidden">
                     <TextBlock HorizontalAlignment="Center" Margin="0,25,0,0" TextWrapping="NoWrap" Text="Устройство найдено" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
-                    <TextBlock x:Name="TSDeviceNameLabel" HorizontalAlignment="Center" Margin="0,55,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
-                    <TextBlock x:Name="TSDeviceTokenLabel" HorizontalAlignment="Center" Margin="0,90,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Foreground="White" FontSize="15" Height="25" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
-                    <TextBlock x:Name="TSDeviceLedsLabel" HorizontalAlignment="Center" Margin="0,115,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
-                    <Button x:Name="ConfirmDeviceBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Подтвердить" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,191,0,0" Height="38" Width="120" Click="CheckIPBtn_Click"/>
+                    <TextBlock x:Name="TSDeviceNameLabel" HorizontalAlignment="Center" Margin="0,65,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
+                    <TextBlock x:Name="TSDeviceTokenLabel" HorizontalAlignment="Center" Margin="0,100,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Foreground="White" FontSize="15" Height="25" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
+                    <TextBlock x:Name="TSDeviceLedsLabel" HorizontalAlignment="Center" Margin="0,125,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
+                    <Button x:Name="ConfirmDeviceBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Подтвердить" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,191,0,0" Height="38" Width="120" Click="ConfirmDeviceBtn_Click"/>
                     <Button x:Name="CancelDeviceBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Отмена" Style="{DynamicResource CancelButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,234,0,0" Height="38" Width="120" Click="CancelDeviceBtn_Click"/>
 
                 </Grid>

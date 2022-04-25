@@ -11,6 +11,7 @@ namespace Eugene_Ambilight.Enums
         Fast = 100,
         Normal = 200,
         Slow = 300,
-        VerySlow = 600
+        VerySlow = 600,
+        MegaSlow = 1500
     }
 }
