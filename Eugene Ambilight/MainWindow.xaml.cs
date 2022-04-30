@@ -1,4 +1,5 @@
 ﻿using Eugene_Ambilight.Classes;
+using Eugene_Ambilight.Classes.Models;
 using Eugene_Ambilight.Enums;
 using Eugene_Ambilight.Properties;
 using Newtonsoft.Json;
@@ -179,19 +180,29 @@ namespace Eugene_Ambilight
             await Helper.AnimateHeight(AnimType.Show, errLabel, color: ColorText.Error);
             return false;
         }
-        private static async Task<bool> CheckIP(TextBox textBox, Label errLabel)
+        private static async Task<bool> CheckIP(CheckTextBoxModel[] controls)
         {
-            if(errLabel.IsVisible)
-                await GoError(errLabel, hideError: true);
-            textBox.Text = textBox.Text.Replace(',', '.');
-            string text = textBox.Text.Trim();
-            if (text.Length == 0)
-                return await GoError(errLabel, "Адрес не может быть пустым");
-            else if(text.Contains(" "))
-                return await GoError(errLabel, "Никаких пробелов в адресе");
-            else if(text.Count(a => a == '.') != 3/* || !text.StartsWith("192.168.")*/) // 🤷‍♂️
-                return await GoError(errLabel, "Неверный формат адреса");
-            return true;
+            bool errors = true;
+            foreach (var item in controls)
+            {
+                if (item.errLabel.IsVisible)
+                    await GoError(item.errLabel, hideError: true);
+                item.textBox.Text = item.textBox.Text.Replace(',', '.').Trim();//;
+                string text = item.textBox.Text.Trim();
+                if (text.Length == 0)
+                    await GoError(item.errLabel, "Адрес не может быть пустым");
+                else if (text.Contains(" "))
+                    await GoError(item.errLabel, "Никаких пробелов в адресе");
+                else if (text.Count(a => a == '.') != 3/* || !text.StartsWith("192.168.")*/) // 🤷‍♂️
+                    await GoError(item.errLabel, "Неверный формат адреса");
+                if(controls.Length > 1)
+                {
+                    if(!long.TryParse(string.Join(string.Empty, item.textBox.Text.Split(".")), out long longIP))
+                        await GoError(item.errLabel, "Неверный формат адреса");
+                }
+                errors = false;
+            }
+            return errors;
         }
 
         private async Task<DeviceEntity?> FindDevice(string ip, bool ignoreOutputs = false)
@@ -252,7 +263,7 @@ namespace Eugene_Ambilight
         }
         private async void CheckIPBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (await CheckIP(IPTextBox, SSMInfoLabel))
+            if (await CheckIP(new[] { new CheckTextBoxModel(IPTextBox, SSMInfoLabel) }))
             {
                 SSMInfoLabel.Content = "Сейчас проверим доступность устройства";
                 InfoProgressBar.Visibility = Visibility.Visible;
@@ -288,12 +299,18 @@ namespace Eugene_Ambilight
 
         private async void CheckAutoIPBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (await CheckIP(StartAddress, SSAInfoLabel))
-                if (await CheckIP(EndAddress, SSAInfoLabel))
+            if (await CheckIP(new CheckTextBoxModel[] {
+                new CheckTextBoxModel(StartAddress, SSAInfoLabelStart),
+                new CheckTextBoxModel(EndAddress, SSAInfoLabelEnd)
+            }))
+                foreach (var third in Enumerable.Range(0, 255))
                 {
+                    foreach (var fourth in Enumerable.Range(0, 255))
+                    {
 
+                    }
                 }
-            
+
         }
 
         private void Address_KeyUp(object sender, KeyEventArgs e)

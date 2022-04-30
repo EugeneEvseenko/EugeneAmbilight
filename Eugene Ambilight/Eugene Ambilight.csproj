@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <None Remove="C:\Users\jonik\.nuget\packages\nlog.config\4.7.15\contentFiles\any\any\NLog.config" />
+    <None Remove="Images\back.png" />
+    <None Remove="Images\check.png" />
+    <None Remove="Images\close.png" />
+    <None Remove="Images\search.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +29,13 @@
       <VersionMajor>2</VersionMajor>
       <Guid>d37e2a3e-8545-3a39-9f4f-31827c9124ab</Guid>
     </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\back.png" />
+    <Resource Include="Images\check.png" />
+    <Resource Include="Images\close.png" />
+    <Resource Include="Images\search.png" />
   </ItemGroup>
 
   <ItemGroup>
