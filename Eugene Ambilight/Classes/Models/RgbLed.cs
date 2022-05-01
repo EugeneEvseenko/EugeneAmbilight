@@ -1,24 +1,36 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Eugene_Ambilight.Classes
+namespace Eugene_Ambilight.Classes.Models
 {
+    /// <summary>
+    /// Модель одного пикселя ленты.
+    /// </summary>
     [Serializable]
     public class RgbLed
     {
+        /// <summary>
+        /// Индекс пикселя в ленте.
+        /// </summary>
         [JsonProperty("i")]
         public int Index { get; set; }
+
+        /// <summary>
+        /// Красный цвет. (0 - 255)
+        /// </summary>
         [JsonProperty("r")]
-        public int Red { get; set; }
+        public byte Red { get; set; }
 
+        /// <summary>
+        /// Зеленный цвет. (0 - 255)
+        /// </summary>
         [JsonProperty("g")]
-        public int Green { get; set; }
+        public byte Green { get; set; }
 
+        /// <summary>
+        /// Синий цвет. (0 - 255)
+        /// </summary>
         [JsonProperty("b")]
-        public int Blue { get; set; }
+        public byte Blue { get; set; }
     }
 }

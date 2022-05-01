@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Eugene_Ambilight.Enums
+﻿namespace Eugene_Ambilight.Enums
 {
+    /// <summary>
+    /// Цвет текста
+    /// </summary>
     public enum ColorText
     {
         Success, Error, Regular

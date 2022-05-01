@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Eugene_Ambilight.Enums
+﻿namespace Eugene_Ambilight.Enums
 {
+    /// <summary>
+    /// Тип анимации
+    /// </summary>
     public enum AnimType
     {
         Show, Hide

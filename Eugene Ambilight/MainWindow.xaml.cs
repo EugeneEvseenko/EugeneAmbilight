@@ -1,5 +1,6 @@
 ﻿using Eugene_Ambilight.Classes;
 using Eugene_Ambilight.Classes.Models;
+using Eugene_Ambilight.Classes.Requests;
 using Eugene_Ambilight.Enums;
 using Eugene_Ambilight.Properties;
 using Newtonsoft.Json;
@@ -14,13 +15,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Eugene_Ambilight
 {
@@ -55,9 +51,9 @@ namespace Eugene_Ambilight
                 foreach (var kek in ids)
                 {
                     List<RgbLed> items = new List<RgbLed>() {
-                        new RgbLed(){Index = rnd.Next(0, 6), Red = rnd.Next(0, 256), Green = rnd.Next(0, 256), Blue = rnd.Next(0, 256)},
-                        new RgbLed(){Index = rnd.Next(0, 6), Red = rnd.Next(0, 256), Green = rnd.Next(0, 256), Blue = rnd.Next(0, 256)},
-                        new RgbLed(){Index = rnd.Next(0, 6), Red = rnd.Next(0, 256), Green = rnd.Next(0, 256), Blue = rnd.Next(0, 256)}
+                        new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)},
+                        new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)},
+                        new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)}
                     };
 
                     AmbilightRequest dataItem = new(items);
@@ -170,6 +166,14 @@ namespace Eugene_Ambilight
             await Helper.AnimateHeight(AnimType.Hide, (e.Source as Button)?.Name == SSMBackBtn.Name ? SecondStageManual : SecondStageAuto);
             await Helper.AnimateHeight(AnimType.Show, FirstStage);
         }
+
+        /// <summary>
+        /// Вывод ошибки в <see cref="Label"/>. Вспомогательный метод для <see cref="CheckIP"/>.
+        /// </summary>
+        /// <param name="errLabel"><see cref="Label"/> в который нужно вывести ошибку.</param>
+        /// <param name="content">Текст ошибки.</param>
+        /// <param name="hideError">Нужно ли скрыть <see cref="Label"/> с экрана.</param>
+        /// <returns></returns>
         public static async Task<bool> GoError(Label errLabel, string? content = null, bool hideError = false)
         {
             if (hideError) { 
@@ -180,31 +184,65 @@ namespace Eugene_Ambilight
             await Helper.AnimateHeight(AnimType.Show, errLabel, color: ColorText.Error);
             return false;
         }
+        /// <summary>
+        ///     Валидация TextBox-ов с IP адресами.
+        /// </summary>
+        /// <param name="controls">Список TextBox-ов и Label-ов для валидации.</param>
+        /// <returns>
+        ///     Логическое значение успешности валидации.<br></br>
+        ///     <see cref="bool">True</see> - в случение успеха, <see cref="bool">False</see> при неудаче.
+        /// </returns>
         private static async Task<bool> CheckIP(CheckTextBoxModel[] controls)
         {
-            bool errors = true;
+            bool errors = false;
             foreach (var item in controls)
             {
-                if (item.errLabel.IsVisible)
+                if (item.errLabel.Visibility == Visibility.Visible && item.errLabel.IsVisible)
                     await GoError(item.errLabel, hideError: true);
                 item.textBox.Text = item.textBox.Text.Replace(',', '.').Trim();//;
                 string text = item.textBox.Text.Trim();
-                if (text.Length == 0)
-                    await GoError(item.errLabel, "Адрес не может быть пустым");
-                else if (text.Contains(" "))
-                    await GoError(item.errLabel, "Никаких пробелов в адресе");
-                else if (text.Count(a => a == '.') != 3/* || !text.StartsWith("192.168.")*/) // 🤷‍♂️
-                    await GoError(item.errLabel, "Неверный формат адреса");
-                if(controls.Length > 1)
-                {
-                    if(!long.TryParse(string.Join(string.Empty, item.textBox.Text.Split(".")), out long longIP))
-                        await GoError(item.errLabel, "Неверный формат адреса");
+                if (text.Length == 0){
+                    await GoError(item.errLabel, "Адрес не может быть пустым"); errors = true;
                 }
-                errors = false;
+                else if (text.Contains(" ")){
+                    await GoError(item.errLabel, "Никаких пробелов в адресе"); errors = true;
+                }
+                else if (text.Count(a => a == '.') != 3/* || !text.StartsWith("192.168.")*/) {  // 🤷‍♂️
+                    await GoError(item.errLabel, "Неверный формат адреса"); errors = true;
+                }
             }
-            return errors;
+            if (errors) return false;
+            if (controls.Length > 1)
+            {
+                var ipFirstSlices = controls[0].textBox.Text.Split(".").ToList();
+                var ipSecondSlices = controls[1].textBox.Text.Split(".").ToList();
+                for (int i = 0; i < ipFirstSlices.Count; i++)
+                {
+                    if (!byte.TryParse(ipFirstSlices[i], out byte byteFirstSlice))
+                        return await GoError(controls[0].errLabel, "Ой ёй, исправляй давай.");
+                    if (!byte.TryParse(ipSecondSlices[i], out byte byteSecondSlice))
+                        return await GoError(controls[1].errLabel, $"{controls[1].textBox.Text}? Серьёзно?");
+                    if (byteFirstSlice > byteSecondSlice)
+                    {
+                        var temp = controls[0].textBox.Text;
+                        controls[0].textBox.Text = controls[1].textBox.Text;
+                        controls[1].textBox.Text = temp;
+                        return true;
+                    }
+                }
+            }
+            return true;
         }
 
+        /// <summary>
+        ///     Поиск устройства по IP.
+        /// </summary>
+        /// <param name="ip">IP адрес устройства.</param>
+        /// <param name="ignoreOutputs">
+        /// Флаг, если установленно <see cref="bool">True</see> - будут игнорироваться выводы об ошибках.
+        /// По умолчанию <see cref="bool">False</see>.
+        /// </param>
+        /// <returns>В случае успеха вернет объект с информацией об устройстве <see cref="DeviceEntity"/>, либо null.</returns>
         private async Task<DeviceEntity?> FindDevice(string ip, bool ignoreOutputs = false)
         {
             HttpClient pingClient = new();
@@ -229,6 +267,7 @@ namespace Eugene_Ambilight
                     await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Success);
                     await Helper.CreateDelay(500);
                     targetDevice = responseJson;
+                    await Helper.AnimateHeight(AnimType.Hide, SSMInfoLabel);
                     return responseJson;
                 }
                 else
@@ -296,7 +335,7 @@ namespace Eugene_Ambilight
             if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
             await Helper.AnimateColor(Colors.LightGreen, DeviceState);
         }
-
+        #region auto adding in progress
         private async void CheckAutoIPBtn_Click(object sender, RoutedEventArgs e)
         {
             if (await CheckIP(new CheckTextBoxModel[] {
@@ -307,16 +346,17 @@ namespace Eugene_Ambilight
                 {
                     foreach (var fourth in Enumerable.Range(0, 255))
                     {
-
+                        // in progress
                     }
                 }
 
         }
-
+        
         private void Address_KeyUp(object sender, KeyEventArgs e)
         {
             if(e.Key == Key.Enter)
                 CheckAutoIPBtn_Click(sender, e);
         }
+        #endregion
     }
 }
