@@ -13,6 +13,8 @@
     <None Remove="Images\back.png" />
     <None Remove="Images\check.png" />
     <None Remove="Images\close.png" />
+    <None Remove="Images\forward.png" />
+    <None Remove="Images\info.png" />
     <None Remove="Images\search.png" />
   </ItemGroup>
 
@@ -35,6 +37,8 @@
     <Resource Include="Images\back.png" />
     <Resource Include="Images\check.png" />
     <Resource Include="Images\close.png" />
+    <Resource Include="Images\forward.png" />
+    <Resource Include="Images\info.png" />
     <Resource Include="Images\search.png" />
   </ItemGroup>
 

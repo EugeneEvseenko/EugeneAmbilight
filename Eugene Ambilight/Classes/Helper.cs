@@ -1,16 +1,11 @@
 ﻿using Eugene_Ambilight.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
@@ -23,6 +18,7 @@ namespace Eugene_Ambilight.Classes
     public static class Helper
     {
         private static Dictionary<string, double> HeightDict = new();
+        private static Dictionary<string, double> WidthDict = new();
         private static DoubleAnimation opacityShow = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(300))
         {
             EasingFunction = new CircleEase { EasingMode = EasingMode.EaseIn }
@@ -33,10 +29,11 @@ namespace Eugene_Ambilight.Classes
         };
 
         /// <summary>
-        /// Анимирование объектов по высоте.
+        /// Анимирование объектов.
         /// </summary>
+        /// <param name="animAction">Событие анимации.</param>
         /// <param name="animType">Тип анимации.</param>
-        /// <param name="element">Объект который наследуется от <see cref="FrameworkElement"/>.</param>
+        /// <param name="element">Анимируемый объект который наследуется от <see cref="FrameworkElement"/>.</param>
         /// <param name="speed">Скорость анимации.</param>
         /// <param name="color">
         ///     <para>Цвет который необходимо установить объекту.</para>
@@ -46,10 +43,12 @@ namespace Eugene_Ambilight.Classes
         ///     <para>Если <see cref="bool">False</see> - метод будет ожидать конца анимации объекта.</para>
         ///     <para>По умолчанию - <see cref="bool">True</see>.</para>
         /// </param>
-        /// 
-        public static async Task AnimateHeight(AnimType animType, FrameworkElement element, Speed speed = Speed.Normal, ColorText? color = null, bool withoutDelay = true)
+        /// <param name="enableFade">Параллельная анимация появления/исчезновения. По умолчанию включена.</param>
+        /// <param name="text">Используются совместно с анимацией текста.</param>
+        public static async Task AnimateDouble(AnimAction animAction, AnimType animType, FrameworkElement element, Speed speed = Speed.Normal, ColorText? color = null, bool withoutDelay = true, bool enableFade = true, string text = "")
         {
             if (!HeightDict.ContainsKey(element.Name)) HeightDict.Add(element.Name, element.ActualHeight);
+            if (!WidthDict.ContainsKey(element.Name)) WidthDict.Add(element.Name, element.ActualWidth);
             if (color.HasValue)
                 if (element is Control control) 
                     control.Foreground = new SolidColorBrush(
@@ -58,37 +57,97 @@ namespace Eugene_Ambilight.Classes
                             : color.Value == ColorText.Error 
                                 ? Colors.IndianRed 
                                 : Colors.LightGray);
-            if (animType == AnimType.Show)
+            DoubleAnimation animation = new DoubleAnimation();
+            double toValue = 0.0;
+            switch (animType)
+            {
+                case AnimType.Height: toValue = HeightDict[element.Name]; break;
+                case AnimType.Width: toValue = WidthDict[element.Name]; break;
+            }
+            if (animAction == AnimAction.Show)
             {
                 element.Visibility = Visibility.Visible;
-                var animation = new DoubleAnimation(0.0, HeightDict[element.Name], TimeSpan.FromMilliseconds((double)speed))
+                animation = new DoubleAnimation(0.0, toValue, TimeSpan.FromMilliseconds((double)speed))
                 {
                     EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut }
                 };
-                element.BeginAnimation(UIElement.OpacityProperty, opacityShow);
-                element.BeginAnimation(FrameworkElement.HeightProperty, animation);
+                if (enableFade)
+                    element.BeginAnimation(UIElement.OpacityProperty, opacityShow);
             }
-            else
+            else if(animAction == AnimAction.Hide || animAction == AnimAction.HideAndShow)
             {
-                var animation = new DoubleAnimation(HeightDict[element.Name], 0.0, TimeSpan.FromMilliseconds((double)speed))
+                animation = new DoubleAnimation(toValue, 0.0, TimeSpan.FromMilliseconds((double)speed))
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
                 if(!withoutDelay)
                     animation.Completed += delegate (object? sender, EventArgs e)
                     {
-                        element.Visibility = Visibility.Collapsed;
+                        if (animAction == AnimAction.Hide)
+                            element.Visibility = Visibility.Hidden;
+                        else
+                        {
+                            if (element is Label label)
+                                label.Content = text;
+                            if (element is TextBlock textBlock)
+                                textBlock.Text = text;
+                            _ = AnimateDouble(AnimAction.Show, animType, element, speed, color, withoutDelay, enableFade);
+                        }  
                     };
-                element.BeginAnimation(UIElement.OpacityProperty, opacityHide);
-                element.BeginAnimation(FrameworkElement.HeightProperty, animation);
+                if (enableFade)
+                    element.BeginAnimation(UIElement.OpacityProperty, opacityHide);
             }
-            if(!withoutDelay)
+            switch (animType)
+            {
+                case AnimType.Height: element.BeginAnimation(FrameworkElement.HeightProperty, animation); break;
+                case AnimType.Width: element.BeginAnimation(FrameworkElement.WidthProperty, animation); break;
+            }
+            if (!withoutDelay)
                 await Task.Delay((int)speed);
         }
 
-        public static async Task AnimateTooltip(AnimType animType, Label label, Speed speed = Speed.Normal)
+        private static DoubleAnimation animationWidthToLine = new DoubleAnimation(200, TimeSpan.FromMilliseconds((double)Speed.Normal))
         {
-            await AnimateHeight(animType, label, speed);
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationToZero = new DoubleAnimation(0, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationToBasicHeightLine = new DoubleAnimation(2, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationHeightToRect = new DoubleAnimation(150, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationRadiusToRect = new DoubleAnimation(10, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        public static async Task AnimateRect(System.Windows.Shapes.Rectangle rect, byte index, bool withoutDelay = true)
+        {
+            switch (index)
+            {
+                case 0:
+                    rect.BeginAnimation(FrameworkElement.WidthProperty, animationWidthToLine);
+                    rect.BeginAnimation(FrameworkElement.HeightProperty, animationToBasicHeightLine);
+                    rect.BeginAnimation(System.Windows.Shapes.Rectangle.RadiusXProperty, animationToZero);
+                    rect.BeginAnimation(System.Windows.Shapes.Rectangle.RadiusYProperty, animationToZero);break;
+                case 1:
+                    rect.BeginAnimation(FrameworkElement.WidthProperty, animationToBasicHeightLine);
+                    rect.BeginAnimation(FrameworkElement.HeightProperty, animationToBasicHeightLine);
+                    rect.BeginAnimation(System.Windows.Shapes.Rectangle.RadiusXProperty, animationToZero);
+                    rect.BeginAnimation(System.Windows.Shapes.Rectangle.RadiusYProperty, animationToZero); break;
+                case 2:
+                    rect.BeginAnimation(FrameworkElement.WidthProperty, animationWidthToLine);
+                    rect.BeginAnimation(FrameworkElement.HeightProperty, animationHeightToRect);
+                    rect.BeginAnimation(System.Windows.Shapes.Rectangle.RadiusXProperty, animationRadiusToRect);
+                    rect.BeginAnimation(System.Windows.Shapes.Rectangle.RadiusYProperty, animationRadiusToRect); break;
+            }
+            if (!withoutDelay)
+                await CreateDelay((int)Speed.Normal);
         }
 
         /// <summary>
@@ -98,7 +157,11 @@ namespace Eugene_Ambilight.Classes
         /// <param name="toColor">Цвет, который должен быть у объекта к концу анимации.</param>
         /// <param name="element">Объект который наследуется от <see cref="FrameworkElement"/>.</param>
         /// <param name="speed">Скорость анимации.</param>
-        public static async Task AnimateColor(System.Windows.Media.Color toColor, FrameworkElement element, Speed speed = Speed.MegaSlow)
+        /// <param name="withoutDelay">
+        ///     <para>Если <see cref="bool">False</see> - метод будет ожидать конца анимации объекта.</para>
+        ///     <para>По умолчанию - <see cref="bool">True</see>.</para>
+        /// </param>
+        public static async Task AnimateColor(System.Windows.Media.Color toColor, FrameworkElement element, Speed speed = Speed.MegaSlow, bool withoutDelay = true)
         {
             var animation = new ColorAnimation(
                 toColor, TimeSpan.FromMilliseconds((double)speed)) 
@@ -108,12 +171,14 @@ namespace Eugene_Ambilight.Classes
             if(element is Shape shape)
             {
                 shape.Fill.BeginAnimation(SolidColorBrush.ColorProperty, animation);
-                await Task.Delay((int)speed);
+                if (!withoutDelay)
+                    await Task.Delay((int)speed);
             }
             if (element is Control control)
             {
                 control.Background.BeginAnimation(SolidColorBrush.ColorProperty, animation);
-                await Task.Delay((int)speed);
+                if (!withoutDelay)
+                    await Task.Delay((int)speed);
             }
         }
         /// <summary>

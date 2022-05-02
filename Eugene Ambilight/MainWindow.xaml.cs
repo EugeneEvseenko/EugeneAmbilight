@@ -3,6 +3,7 @@ using Eugene_Ambilight.Classes.Models;
 using Eugene_Ambilight.Classes.Requests;
 using Eugene_Ambilight.Enums;
 using Eugene_Ambilight.Properties;
+using Eugene_Ambilight.Windows;
 using Newtonsoft.Json;
 using NLog;
 using System;
@@ -26,6 +27,7 @@ namespace Eugene_Ambilight
     public partial class MainWindow : Window
     {
         public MainWindow() => InitializeComponent();
+
         private void TitleGrid_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed) DragMove();
@@ -34,119 +36,101 @@ namespace Eugene_Ambilight
         private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            debugLogger.Info("App started");
-            await Helper.AnimateHeight(AnimType.Show, StartGrid);
+            if (Settings.Default.DeviceInfo != null)
+            {
+                await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, MainGrid);
+                debugLogger.Info("App started with saved device");
+                debugLogger.Info(Settings.Default.DeviceInfo);
+            }
+            else
+            {
+                await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, StartGrid);
+                debugLogger.Info("App started without device");
+            }
+            //new PointWindow().Show();
         }
+        #region Variables
         private Logger errLogger = LogManager.GetLogger("errLogger");
         private Logger debugLogger = LogManager.GetLogger("debugLogger");
-        private DeviceEntity targetDevice;
-        HttpClient httpClient = new HttpClient();
-        Random rnd = new Random();
-        private async void btnSend_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                IEnumerable<int> ids = Enumerable.Range(0, 60);
-                Stopwatch allSW = Stopwatch.StartNew();
-                foreach (var kek in ids)
-                {
-                    List<RgbLed> items = new List<RgbLed>() {
-                        new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)},
-                        new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)},
-                        new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)}
-                    };
+        private DeviceEntity? targetDevice;
+        private byte TargetPlace = 0;
+        private readonly string[] LedPlaceVariants = new string[] { "Линия", "Свой", "Прямоугольник" };
+        #endregion
+        //private async void btnSend_Click(object sender, RoutedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        IEnumerable<int> ids = Enumerable.Range(0, 60);
+        //        Stopwatch allSW = Stopwatch.StartNew();
+        //        foreach (var kek in ids)
+        //        {
+        //            List<RgbLed> items = new List<RgbLed>() {
+        //                new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)},
+        //                new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)},
+        //                new RgbLed(){Index = rnd.Next(0, 6), Red = (byte)rnd.Next(0, 256), Green = (byte)rnd.Next(0, 256), Blue = (byte)rnd.Next(0, 256)}
+        //            };
 
-                    AmbilightRequest dataItem = new(items);
-                    string json = JsonConvert.SerializeObject(dataItem);
-                    HttpRequestMessage AmbilightRgbRequest = new()
-                    {
-                        Method = HttpMethod.Post,
-                        Content = new StringContent(json, Encoding.UTF8, "application/json")
-                    };
-                    AmbilightRgbRequest.RequestUri = new Uri("/ambilight", UriKind.Relative);
-                    Stopwatch stopwatch = Stopwatch.StartNew();
-                    var response = await httpClient.SendAsync(AmbilightRgbRequest);
-                    stopwatch.Stop();
-                    PingLabel.Content = $"Ping: {stopwatch.ElapsedMilliseconds} ms";
-                }
-                allSW.Stop();
-                PointLabel.Content = $"Elapsed {ids.Count()} - {allSW.ElapsedMilliseconds} ms";
-            }catch (HttpRequestException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
+        //            AmbilightRequest dataItem = new(items);
+        //            string json = JsonConvert.SerializeObject(dataItem);
+        //            HttpRequestMessage AmbilightRgbRequest = new()
+        //            {
+        //                Method = HttpMethod.Post,
+        //                Content = new StringContent(json, Encoding.UTF8, "application/json")
+        //            };
+        //            AmbilightRgbRequest.RequestUri = new Uri("/ambilight", UriKind.Relative);
+        //            Stopwatch stopwatch = Stopwatch.StartNew();
+        //            var response = await httpClient.SendAsync(AmbilightRgbRequest);
+        //            stopwatch.Stop();
+        //            PingLabel.Content = $"Ping: {stopwatch.ElapsedMilliseconds} ms";
+        //        }
+        //        allSW.Stop();
+        //        PointLabel.Content = $"Elapsed {ids.Count()} - {allSW.ElapsedMilliseconds} ms";
+        //    }catch (HttpRequestException ex)
+        //    {
+        //        MessageBox.Show(ex.Message);
+        //    }
+        //}
 
-        private async void AmbilightState_Changed(object sender, RoutedEventArgs e)
-        {
-            ChangeStateRequest changeState = new() { State = AmbilightState.IsChecked };
-            string json = JsonConvert.SerializeObject(changeState);
-            HttpRequestMessage AmbiChangeStateRequest = new()
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri("ambilight-state", UriKind.Relative),
-                Content = new StringContent(json, Encoding.UTF8, "application/json")
-            };
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            var response = await httpClient.SendAsync(AmbiChangeStateRequest);
-            stopwatch.Stop();
-            PingLabel.Content = $"Ping: {stopwatch.ElapsedMilliseconds} ms";
-        }
-
-        private async void btnSearch_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var third in Enumerable.Range(0, 255))
-            {
-                foreach (var fourth in Enumerable.Range(0, 255))
-                {
-                    HttpClient pingClient = new();
-                    pingClient.Timeout = TimeSpan.FromMilliseconds(200);
-                    var address = $"http://192.168.{third}.{fourth}/";
-                    PingLabel.Content = $"Address: {address}";
-                    CancellationTokenSource cancellationTokenSource = new();
-                    try {
-                        pingClient.BaseAddress = new Uri(address);
-                        var response = await pingClient.GetAsync("/ping", cancellationTokenSource.Token);
-                        
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var jsonString = await response.Content.ReadAsStringAsync();
-                            var responseJson = JsonConvert.DeserializeObject<DeviceEntity>(jsonString);
-                            DeviceList.Items.Add(responseJson?.Name);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        cancellationTokenSource.Cancel(); pingClient.CancelPendingRequests();
-                    }
-                }
-            }
-        }
+        //private async void AmbilightState_Changed(object sender, RoutedEventArgs e)
+        //{
+        //    ChangeStateRequest changeState = new() { State = AmbilightState.IsChecked };
+        //    string json = JsonConvert.SerializeObject(changeState);
+        //    HttpRequestMessage AmbiChangeStateRequest = new()
+        //    {
+        //        Method = HttpMethod.Post,
+        //        RequestUri = new Uri("ambilight-state", UriKind.Relative),
+        //        Content = new StringContent(json, Encoding.UTF8, "application/json")
+        //    };
+        //    Stopwatch stopwatch = Stopwatch.StartNew();
+        //    var response = await httpClient.SendAsync(AmbiChangeStateRequest);
+        //    stopwatch.Stop();
+        //    PingLabel.Content = $"Ping: {stopwatch.ElapsedMilliseconds} ms";
+        //}
 
         private async void ManualBtn_MouseEnter(object sender, MouseEventArgs e)
         {
             if(AutoLabel.IsVisible)
-                await Helper.AnimateHeight(AnimType.Hide, AutoLabel, Speed.Fast);
-            await Helper.AnimateHeight(AnimType.Show, ManualLabel, color: ColorText.Regular);
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, AutoLabel, Speed.Fast);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ManualLabel, color: ColorText.Regular);
         }
 
         private async void ManualBtn_MouseLeave(object sender, MouseEventArgs e) 
-            => await Helper.AnimateHeight(AnimType.Hide, ManualLabel, Speed.Normal);
+            => await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ManualLabel, Speed.Normal);
 
         private async void AutoBtn_MouseEnter(object sender, MouseEventArgs e)
         {
             if (AutoLabel.IsVisible)
-                await Helper.AnimateHeight(AnimType.Hide, ManualLabel, Speed.Fast);
-            await Helper.AnimateHeight(AnimType.Show, AutoLabel, color: ColorText.Regular);
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ManualLabel, Speed.Fast);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, AutoLabel, color: ColorText.Regular);
         }
 
         private async void AutoBtn_MouseLeave(object sender, MouseEventArgs e)
-            => await Helper.AnimateHeight(AnimType.Hide, AutoLabel, Speed.Normal);
+            => await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, AutoLabel, Speed.Normal);
 
         private async void ManualBtn_Click(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateHeight(AnimType.Hide, FirstStage);
-            await Helper.AnimateHeight(AnimType.Show, SecondStageManual);
+            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, FirstStage);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageManual);
             IPTextBox.Focus();
             IPTextBox.SelectionStart = IPTextBox.Text.Length;
             IPTextBox.SelectionLength = 0;
@@ -154,8 +138,8 @@ namespace Eugene_Ambilight
 
         private async void AutoBtn_Click(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateHeight(AnimType.Hide, FirstStage);
-            await Helper.AnimateHeight(AnimType.Show, SecondStageAuto);
+            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, FirstStage);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageAuto);
             StartAddress.Focus();
             StartAddress.SelectionStart = StartAddress.Text.Length;
             StartAddress.SelectionLength = 0;
@@ -163,8 +147,8 @@ namespace Eugene_Ambilight
 
         private async void BackToFirstStage(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateHeight(AnimType.Hide, (e.Source as Button)?.Name == SSMBackBtn.Name ? SecondStageManual : SecondStageAuto);
-            await Helper.AnimateHeight(AnimType.Show, FirstStage);
+            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, (e.Source as Button)?.Name == SSMBackBtn.Name ? SecondStageManual : SecondStageAuto);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, FirstStage);
         }
 
         /// <summary>
@@ -177,11 +161,11 @@ namespace Eugene_Ambilight
         public static async Task<bool> GoError(Label errLabel, string? content = null, bool hideError = false)
         {
             if (hideError) { 
-                await Helper.AnimateHeight(AnimType.Hide, errLabel, withoutDelay: true); 
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, errLabel, withoutDelay: true); 
                 return false; 
             }
             errLabel.Content = content;
-            await Helper.AnimateHeight(AnimType.Show, errLabel, color: ColorText.Error);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, errLabel, color: ColorText.Error);
             return false;
         }
         /// <summary>
@@ -249,7 +233,7 @@ namespace Eugene_Ambilight
             pingClient.Timeout = TimeSpan.FromSeconds(5);
             var address = $"http://{ip}/";
             SSMInfoLabel.Content = $"Ждем ответа от {ip}...";
-            await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel);
             CancellationTokenSource cancellationTokenSource = new();
             try
             {
@@ -264,10 +248,10 @@ namespace Eugene_Ambilight
                         throw new ArgumentNullException();
                     InfoProgressBar.Visibility = Visibility.Hidden;
                     SSMInfoLabel.Content = $"Успешно!";
-                    await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Success);
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel, color: ColorText.Success);
                     await Helper.CreateDelay(500);
                     targetDevice = responseJson;
-                    await Helper.AnimateHeight(AnimType.Hide, SSMInfoLabel);
+                    await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, SSMInfoLabel);
                     return responseJson;
                 }
                 else
@@ -276,7 +260,7 @@ namespace Eugene_Ambilight
                     if (!ignoreOutputs)
                     {
                         SSMInfoLabel.Content = $"Видимо не туда стучимся. Код ответа {(int)response.StatusCode}.";
-                        await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                        await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel, color: ColorText.Error);
                     }
                 }
             }
@@ -289,7 +273,7 @@ namespace Eugene_Ambilight
                         SSMInfoLabel.Content = $"Устройство ответило неверно. Проверь версию прошивки.";
                     else
                         SSMInfoLabel.Content = $"Устройство не отвечает. Проверь подключение.";
-                    await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Error);
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel, color: ColorText.Error);
                 }
                 cancellationTokenSource.Cancel(); pingClient.CancelPendingRequests();
             }
@@ -306,23 +290,23 @@ namespace Eugene_Ambilight
             {
                 SSMInfoLabel.Content = "Сейчас проверим доступность устройства";
                 InfoProgressBar.Visibility = Visibility.Visible;
-                await Helper.AnimateHeight(AnimType.Show, SSMInfoLabel, color: ColorText.Regular);
+                await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel, color: ColorText.Regular);
                 await Helper.CreateDelay(500);
                 if (await FindDevice(IPTextBox.Text) != null)
                 {
-                    await Helper.AnimateHeight(AnimType.Hide, SecondStageManual);
+                    await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, SecondStageManual);
                     TSDeviceNameLabel.Text = targetDevice.Name;
                     TSDeviceTokenLabel.Text = targetDevice.Token;
                     TSDeviceLedsLabel.Text = $"{targetDevice.Leds} светодиодов";
-                    await Helper.AnimateHeight(AnimType.Show, ThirdStage);
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ThirdStage);
                 }
             }
         }
 
         private async void CancelDeviceBtn_Click(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateHeight(AnimType.Hide, ThirdStage);
-            await Helper.AnimateHeight(AnimType.Show, SecondStageManual);
+            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ThirdStage);
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageManual);
             IPTextBox.Focus();
             IPTextBox.SelectionStart = IPTextBox.Text.Length;
             IPTextBox.SelectionLength = 0;
@@ -333,7 +317,11 @@ namespace Eugene_Ambilight
             Settings.Default.DeviceInfo = JsonConvert.SerializeObject(targetDevice);
             Settings.Default.Save();
             if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
-            await Helper.AnimateColor(Colors.LightGreen, DeviceState);
+            await Helper.AnimateColor(Colors.LightGreen, DeviceState, withoutDelay: false);
+            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, StartGrid, withoutDelay: false);
+            MainGrid.Visibility = Visibility.Visible;
+            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ZoneManagementGrid);
+
         }
         #region auto adding in progress
         private async void CheckAutoIPBtn_Click(object sender, RoutedEventArgs e)
@@ -358,5 +346,21 @@ namespace Eugene_Ambilight
                 CheckAutoIPBtn_Click(sender, e);
         }
         #endregion
+
+        private async void BackZoneBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (TargetPlace != 0) TargetPlace--; else TargetPlace = 2;
+            await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, TargetPlaceLbl, Speed.Fast,
+                text: LedPlaceVariants[TargetPlace], withoutDelay: false, enableFade: false);
+            await Helper.AnimateRect(RectDemonstration, TargetPlace);
+        }
+
+        private async void ForwardZoneBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if(TargetPlace != 2) TargetPlace++; else TargetPlace = 0;
+            await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, TargetPlaceLbl, Speed.Fast, 
+                text: LedPlaceVariants[TargetPlace], withoutDelay: false, enableFade: false);
+            await Helper.AnimateRect(RectDemonstration, TargetPlace);
+        }
     }
 }

@@ -14,7 +14,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <SolidColorBrush Color="#2d364c" x:Key="BrushButtonNormalEnter" />
+        <SolidColorBrush Color="#242424" x:Key="BrushButtonNormalEnter" />
         <SolidColorBrush Color="DarkRed" x:Key="BrushButtonCloseEnter" />
 
         <Color ScR="45" ScG="54" ScB="76" x:Key="ColorButtonNormalEnter" />
@@ -24,8 +24,8 @@
             <Setter Property="Margin" Value="2"/>
             <Setter Property="FocusVisualStyle" Value="{StaticResource MyFocusVisual}" />
             <Setter Property="Background" Value="{StaticResource BrushButtonNormalEnter}"/>
-            <!-- <Setter Property="Foreground" Value="White"/>-->
-            <Setter Property="BorderBrush" Value="#232b3e"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4d4d4d"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontFamily" Value="/Hided Files Online;component/Resources/#Gotham"/>
             <Setter Property="FontSize" Value="13"/>
@@ -35,8 +35,8 @@
                         <Border Name="border" 
         				BorderThickness="{TemplateBinding BorderThickness}"
         				Padding="4,2" 
-        				BorderBrush="#232b3e" 
-        				CornerRadius="0" 
+        				BorderBrush="#4d4d4d" 
+        				CornerRadius="5" 
         				Background="{TemplateBinding Background}">
                             <Grid >
 
@@ -50,7 +50,7 @@
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetProperty="Background.Color"
-                                        To="#232b3e" AutoReverse="False" Duration="0:0:0:0.2" />
+                                        To="#4d4d4d" AutoReverse="False" Duration="0:0:0:0.2" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </EventTrigger.Actions>
@@ -60,7 +60,7 @@
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetProperty="Background.Color"
-                                        To="#2d364c" AutoReverse="False" Duration="0:0:0:0.2" />
+                                        To="#242424" AutoReverse="False" Duration="0:0:0:0.2" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </EventTrigger.Actions>
@@ -95,7 +95,7 @@
             <Setter Property="FocusVisualStyle" Value="{StaticResource MyFocusVisual}" />
             <Setter Property="Background" Value="{StaticResource BrushButtonNormalEnter}"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#232b3e"/>
+            <Setter Property="BorderBrush" Value="#4d4d4d"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontFamily" Value="/Hided Files Online;component/Resources/#Gotham"/>
             <Setter Property="FontSize" Value="13"/>
@@ -105,7 +105,7 @@
                         <Border Name="border" 
         				BorderThickness="{TemplateBinding BorderThickness}"
         				Padding="4,2" 
-        				BorderBrush="#232b3e" 
+        				BorderBrush="#4d4d4d" 
         				CornerRadius="0" 
         				Background="{TemplateBinding Background}">
                             <Grid >
@@ -142,7 +142,7 @@
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetProperty="Background.Color"
-                                        To="#2d364c" AutoReverse="False" Duration="0:0:0:0.2" />
+                                        To="#242424" AutoReverse="False" Duration="0:0:0:0.2" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </EventTrigger.Actions>
@@ -171,9 +171,9 @@
             <Setter Property="OverridesDefaultStyle" Value="True"/>
 
             <Setter Property="FocusVisualStyle" Value="{StaticResource MyFocusVisual}" />
-            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Background" Value="#7160ea"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#388E3C"/>
+            <Setter Property="BorderBrush" Value="#6052c5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="10"/>
             <Setter Property="FontFamily" Value="/Hided Files Online;component/Resources/#Gotham"/>
@@ -184,7 +184,7 @@
                         <Border Name="border" 
         				BorderThickness="1"
         				Padding="4,2" 
-        				BorderBrush="#388E3C" 
+        				BorderBrush="#6052c5" 
         				CornerRadius="5" 
         				Background="{TemplateBinding Background}">
                             <Grid >
@@ -199,7 +199,7 @@
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetProperty="Background.Color"
-                                        To="#388E3C" AutoReverse="False" Duration="0:0:0:0.2" />
+                                        To="#6052c5" AutoReverse="False" Duration="0:0:0:0.2" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </EventTrigger.Actions>
@@ -210,14 +210,14 @@
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetProperty="Background.Color"
-                                        To="#4CAF50" AutoReverse="False" Duration="0:0:0:0.2" />
+                                        To="#7160ea" AutoReverse="False" Duration="0:0:0:0.2" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </EventTrigger.Actions>
                             </EventTrigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="border" Property="Opacity" Value="0.7" />
-                                <Setter Property="Background" Value="#FF4D7C4F" />
+                                <Setter Property="Background" Value="#5a4cb8" />
                             </Trigger>
 
                         </ControlTemplate.Triggers>
@@ -296,8 +296,8 @@
         <Color x:Key="ControlDisabledBackground">#efeff2</Color>
 
         <Color x:Key="ControlBorder">#383838</Color>
-        <Color x:Key="ControlHoveredBorder">#4CAF50</Color>
-        <Color x:Key="ControlFocusedBorder">#388E3C</Color>
+        <Color x:Key="ControlHoveredBorder">#7160ea</Color>
+        <Color x:Key="ControlFocusedBorder">#6052c5</Color>
         <Color x:Key="ControlReadOnlyBorder">#484848</Color>
         <Color x:Key="ControlDisabledBorder">#787878</Color>
 
@@ -464,6 +464,184 @@
             Stroke="#60000000"
             StrokeDashArray="1 2"/>
                         </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CheckBoxStyle" TargetType="{x:Type CheckBox}">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Height" Value="25" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <BulletDecorator>
+                            <BulletDecorator.Bullet>
+                                <Grid Height="{TemplateBinding Height}" Width="{Binding Height, RelativeSource={RelativeSource Self}, UpdateSourceTrigger=PropertyChanged}"
+                              MinHeight="25" MinWidth="25" ShowGridLines="False">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="4*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="4*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="2*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="3*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="4*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="4*" />
+                                    </Grid.RowDefinitions>
+
+                                    <Border x:Name="MainBorder"
+                                    Grid.ColumnSpan="9" Grid.RowSpan="9"
+                                    CornerRadius="4"
+                                    BorderThickness="1"
+                                    Background="Transparent" />
+
+                                    <Border x:Name="InnerBorder"
+                                    Grid.Column="1" Grid.ColumnSpan="5"
+                                    Grid.Row="2" Grid.RowSpan="5"
+                                    BorderThickness="1" BorderBrush="{TemplateBinding Foreground}" />
+
+                                    <Path x:Name="InnerPath"
+                                  Grid.Column="1" Grid.ColumnSpan="5"
+                                  Grid.Row="2" Grid.RowSpan="5"
+                                  Data="M31,5 L19.5,5 19.5,19.5 34.5,19.5 34.5,11.75"
+                                  Stretch="Fill" Stroke="{TemplateBinding Foreground}"/>
+
+                                    <Path x:Name="CheckMark"
+                                  Grid.Column="2" Grid.ColumnSpan="5"
+                                  Grid.Row="1" Grid.RowSpan="5"
+                                  Opacity="0"
+                                  Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                                  Fill="{TemplateBinding Foreground}"
+                                  Stretch="Fill"
+                                  Stroke="{TemplateBinding Foreground}" />
+
+                                    <Path x:Name="InderminateMark"
+                                  Grid.Column="3"
+                                  Grid.Row="4"
+                                  Data="M0,4 L1,5 5,1 4,0"
+                                  Opacity="0"
+                                  Stretch="Fill"
+                                  StrokeThickness="0"
+                                  Fill="{Binding Background, ElementName=MainGrid}" />
+                                </Grid>
+                            </BulletDecorator.Bullet>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CheckStates">
+                                    <VisualState x:Name="Checked">
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             Storyboard.TargetName="CheckMark" Duration="0:0:0.2" To="1" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Unchecked" >
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             Storyboard.TargetName="CheckMark" Duration="0:0:0.2" To="0" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Indeterminate">
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             Storyboard.TargetName="InderminateMark" Duration="0:0:0.2" To="1" />
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter Margin="4,0,4,0"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        RecognizesAccessKey="True" />
+                        </BulletDecorator>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.80"/>
+
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="InnerBorder" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="MainBorder" Property="Opacity" Value="0.5"/>
+                                <Setter TargetName="MainBorder" Property="Background" Value="{Binding Background, ElementName=MainGrid}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="CheckMark" Property="Fill" Value="#cccccc" />
+                                <Setter TargetName="CheckMark" Property="Stroke" Value="#cccccc" />
+                                <Setter TargetName="InnerPath" Property="Stroke" Value="#cccccc" />
+                                <Setter TargetName="InderminateMark" Property="Fill" Value="#cccccc" />
+                                <Setter TargetName="InnerBorder" Property="BorderBrush" Value="#cccccc" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Viewbox>
+                            <Border x:Name="Border" CornerRadius="10"
+                            Background="#FFFFFFFF"
+                            Width="40" Height="20">
+                                <Border.Effect>
+                                    <DropShadowEffect ShadowDepth="0.5" Direction="0" Opacity="0.3" />
+                                </Border.Effect>
+                                <Ellipse x:Name="Ellipse" Fill="#FFFFFFFF" Stretch="Uniform"
+                                 Margin="2 1 2 1"
+                                 Stroke="Gray" StrokeThickness="0.2"
+                                 HorizontalAlignment="Stretch">
+                                    <Ellipse.Effect>
+                                        <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.3" Direction="260" />
+                                    </Ellipse.Effect>
+                                </Ellipse>
+                            </Border>
+                        </Viewbox>
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="Checked">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Border"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#7160ea"
+                                                    Duration="0:0:0.1" />
+                                        <ThicknessAnimation Storyboard.TargetName="Ellipse"
+                                                        Storyboard.TargetProperty="Margin"
+                                                        To="20 1 2 1"
+                                                        Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="Unchecked">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Border"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="White"
+                                                    Duration="0:0:0.1" />
+                                        <ThicknessAnimation Storyboard.TargetName="Ellipse"
+                                                        Storyboard.TargetProperty="Margin"
+                                                        To="2 1 2 1"
+                                                        Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
