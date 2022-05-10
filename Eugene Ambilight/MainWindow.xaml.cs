@@ -1,6 +1,5 @@
 ﻿using Eugene_Ambilight.Classes;
 using Eugene_Ambilight.Classes.Models;
-using Eugene_Ambilight.Classes.Requests;
 using Eugene_Ambilight.Enums;
 using Eugene_Ambilight.Properties;
 using Eugene_Ambilight.Windows;
@@ -8,10 +7,8 @@ using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -49,12 +46,16 @@ namespace Eugene_Ambilight
             }
             //new PointWindow().Show();
         }
+
+        
         #region Variables
-        private Logger errLogger = LogManager.GetLogger("errLogger");
-        private Logger debugLogger = LogManager.GetLogger("debugLogger");
-        private DeviceEntity? targetDevice;
+        private readonly Logger errLogger = LogManager.GetLogger("errLogger");
+        private readonly Logger debugLogger = LogManager.GetLogger("debugLogger");
+        private DeviceEntity targetDevice;
         private byte TargetPlace = 0;
         private readonly string[] LedPlaceVariants = new string[] { "Линия", "Свой", "Прямоугольник" };
+        private List<PointWindow> PointList = new();
+        private readonly ScreenEntity ScreenInfo = new();
         #endregion
         //private async void btnSend_Click(object sender, RoutedEventArgs e)
         //{
@@ -291,13 +292,13 @@ namespace Eugene_Ambilight
                 SSMInfoLabel.Content = "Сейчас проверим доступность устройства";
                 InfoProgressBar.Visibility = Visibility.Visible;
                 await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel, color: ColorText.Regular);
-                await Helper.CreateDelay(500);
-                if (await FindDevice(IPTextBox.Text) != null)
+                await Helper.CreateDelay(200);
+                if (await FindDevice(IPTextBox.Text) != null && targetDevice != null)
                 {
                     await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, SecondStageManual);
                     TSDeviceNameLabel.Text = targetDevice.Name;
                     TSDeviceTokenLabel.Text = targetDevice.Token;
-                    TSDeviceLedsLabel.Text = $"{targetDevice.Leds} светодиодов";
+                    TSDeviceLedsLabel.Text = Helper.GetEnding(targetDevice.Leds, Helper.LedsEnding);
                     await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ThirdStage);
                 }
             }
@@ -316,12 +317,14 @@ namespace Eugene_Ambilight
         {
             Settings.Default.DeviceInfo = JsonConvert.SerializeObject(targetDevice);
             Settings.Default.Save();
+            foreach(var item in Enumerable.Range(0, targetDevice?.Leds ?? 0)) 
+                PointList.Add(new PointWindow());
             if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
-            await Helper.AnimateColor(Colors.LightGreen, DeviceState, withoutDelay: false);
+            await Helper.AnimateColor(Colors.LightGreen, DeviceState);
             await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, StartGrid, withoutDelay: false);
             MainGrid.Visibility = Visibility.Visible;
             await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ZoneManagementGrid);
-
+            PlacePoints();
         }
         #region auto adding in progress
         private async void CheckAutoIPBtn_Click(object sender, RoutedEventArgs e)
@@ -352,7 +355,7 @@ namespace Eugene_Ambilight
             if (TargetPlace != 0) TargetPlace--; else TargetPlace = 2;
             await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, TargetPlaceLbl, Speed.Fast,
                 text: LedPlaceVariants[TargetPlace], withoutDelay: false, enableFade: false);
-            await Helper.AnimateRect(RectDemonstration, TargetPlace);
+            await Helper.AnimateRect(RectDemonstration, TargetPlace); PlacePoints();
         }
 
         private async void ForwardZoneBtn_Click(object sender, RoutedEventArgs e)
@@ -360,7 +363,28 @@ namespace Eugene_Ambilight
             if(TargetPlace != 2) TargetPlace++; else TargetPlace = 0;
             await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, TargetPlaceLbl, Speed.Fast, 
                 text: LedPlaceVariants[TargetPlace], withoutDelay: false, enableFade: false);
-            await Helper.AnimateRect(RectDemonstration, TargetPlace);
+            await Helper.AnimateRect(RectDemonstration, TargetPlace); PlacePoints();
+        }
+
+        public void PlacePoints()
+        {
+            if (TargetPlace == 0)
+            {
+                Topmost = true;
+                //if (PointList[0].IsVisible) PointList.ForEach(x => x.Hide());
+                double size = ScreenInfo.GetWidth() / targetDevice.Leds;
+                for (int i = 0; i < PointList.Count; i++)
+                {
+                    PointList[i].Width = size;
+                    PointList[i].Height = size;
+                    PointList[i].Left = i * size;
+                    PointList[i].Top = ScreenInfo.GetHeight() / 2 - size / 2;
+                    PointList[i].LedNumber.Content = i + 1;
+                    if(!PointList[i].IsVisible)
+                        PointList[i].Show();
+                }
+            }
+            
         }
     }
 }

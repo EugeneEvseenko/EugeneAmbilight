@@ -209,5 +209,31 @@ namespace Eugene_Ambilight.Classes
                 return bitmap.GetPixel(0, 0);
             }
         }
+
+        /// <summary>
+        /// Набор окончаний для светодиодов
+        /// </summary>
+        public static readonly string[] LedsEnding = new string[] { "светодиод", "светодиода", "светодиодов"};
+
+        /// <summary>
+        /// Функция для склонения слов относительно числа.
+        /// </summary>
+        /// <param name="number">Число</param>
+        /// <param name="titles">Набор из трёх вариантов слов</param>
+        /// <param name="withoutNumber">
+        ///     <para>Если <see cref="bool">True</see> - функция вернет только выбранное слово, 
+        ///           иначе подставит число к нему в начале.</para>
+        ///     <para>По умолчанию - <see cref="bool">False</see>.</para>
+        /// </param>
+        /// <returns></returns>
+        public static string GetEnding(int number, string[] titles, bool withoutNumber = false)
+        {
+            var cases = new byte[] {2, 0, 1, 1, 1, 2};
+            return 
+                withoutNumber 
+                ? "" 
+                : $"{number} " +
+                titles[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[Math.Min(number % 10, 5)]];
+        }
     }
 }
