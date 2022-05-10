@@ -366,7 +366,7 @@ namespace Eugene_Ambilight
             await Helper.AnimateRect(RectDemonstration, TargetPlace); PlacePoints();
         }
 
-        public void PlacePoints()
+        public async void PlacePoints()
         {
             if (TargetPlace == 0)
             {
@@ -375,13 +375,15 @@ namespace Eugene_Ambilight
                 double size = ScreenInfo.GetWidth() / targetDevice.Leds;
                 for (int i = 0; i < PointList.Count; i++)
                 {
+                    double leftTo = i * size;
+                    double topTo = ScreenInfo.GetHeight() / 2 - size / 2;
                     PointList[i].Width = size;
                     PointList[i].Height = size;
-                    PointList[i].Left = i * size;
-                    PointList[i].Top = ScreenInfo.GetHeight() / 2 - size / 2;
                     PointList[i].LedNumber.Content = i + 1;
-                    if(!PointList[i].IsVisible)
+                    if (!PointList[i].IsVisible)
                         PointList[i].Show();
+                    if (PointList[i].Left != leftTo && PointList[i].Top != topTo)
+                        await Helper.AnimateWindowPosition(PointList[i], (leftTo, topTo));
                 }
             }
             

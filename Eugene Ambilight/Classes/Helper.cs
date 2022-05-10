@@ -106,6 +106,31 @@ namespace Eugene_Ambilight.Classes
                 await Task.Delay((int)speed);
         }
 
+        public static async Task AnimateWindowPosition(Window element, (double, double) position, Speed speed = Speed.Normal, bool withoutDelay = true)
+        {
+            var leftAnim = new DoubleAnimation(position.Item1, TimeSpan.FromMilliseconds((double)speed))
+            {
+                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseIn }
+            };
+            var topAnim = new DoubleAnimation(position.Item2, TimeSpan.FromMilliseconds((double)speed))
+            {
+                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseIn }
+            };
+            leftAnim.Completed += delegate (object animSender, EventArgs anim)
+             {
+                 element.BeginAnimation(Window.LeftProperty, null);
+             };
+            topAnim.Completed += delegate (object animSender, EventArgs anim)
+            {
+                element.BeginAnimation(Window.TopProperty, null);
+            };
+            element.BeginAnimation(Window.LeftProperty, leftAnim);
+            element.BeginAnimation(Window.TopProperty, topAnim);
+
+            if (!withoutDelay)
+                await Task.Delay((int)speed);
+        }
+
         private static DoubleAnimation animationWidthToLine = new DoubleAnimation(200, TimeSpan.FromMilliseconds((double)Speed.Normal))
         {
             EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
