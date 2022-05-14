@@ -5,9 +5,11 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <RootNamespace>Eugene_Ambilight</RootNamespace>
     <Nullable>enable</Nullable>
+	  <Deterministic>false</Deterministic>
     <UseWPF>true</UseWPF>
+	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	  <AssemblyName>Eugene Ambilight</AssemblyName>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="C:\Users\jonik\.nuget\packages\nlog.config\4.7.15\contentFiles\any\any\NLog.config" />
     <None Remove="Images\back.png" />
@@ -59,8 +61,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
   </ItemGroup>
-
-  <ItemGroup>
+	
+	<ItemGroup>
     <None Update="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
