@@ -33,24 +33,39 @@ namespace Eugene_Ambilight
         private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (Settings.Default.DeviceInfo != null)
+            if (!string.IsNullOrEmpty(Settings.Default.DeviceInfo))
             {
-                await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, MainGrid);
-                debugLogger.Info("App started with saved device");
-                debugLogger.Info(Settings.Default.DeviceInfo);
+                debugLogger.Info($"App started with saved device {Settings.Default.DeviceInfo}");
+                if (LoadDevice(Settings.Default.DeviceInfo))
+                {
+                    debugLogger.Info($"Loading {targetDevice.Name} device was successful");
+                    await ShowWindow(WindowShowing.ChoosingAddingMethodDevice);
+                    //await ShowWindow(WindowShowing.DeviceManagement);
+                }
+                else
+                {
+                    errLogger.Error($"Device <>{Settings.Default.DeviceInfo}<> loading failed. Reset settigns.");
+                    Settings.Default.Reset();
+                    Settings.Default.Save();
+                    await ShowWindow(WindowShowing.ChoosingAddingMethodDevice);
+                }
             }
             else
             {
-                await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, StartGrid);
+                await ShowWindow(WindowShowing.ChoosingAddingMethodDevice);
                 debugLogger.Info("App started without device");
             }
-            //new PointWindow().Show();
         }
 
-        
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            PointList.ForEach(x => x.Close());
+        }
+
         #region Variables
-        private readonly Logger errLogger = LogManager.GetLogger("errLogger");
-        private readonly Logger debugLogger = LogManager.GetLogger("debugLogger");
+        private bool isLedsReversed = false;
+        private Logger errLogger { get; set; } = LogManager.GetLogger("errLogger");
+        private Logger debugLogger { get; set; } = LogManager.GetLogger("debugLogger");
         private DeviceEntity targetDevice;
         private byte TargetPlace = 0;
         private readonly string[] LedPlaceVariants = new string[] { "Линия", "Свой", "Прямоугольник" };
@@ -108,6 +123,40 @@ namespace Eugene_Ambilight
         //    PingLabel.Content = $"Ping: {stopwatch.ElapsedMilliseconds} ms";
         //}
 
+        public async Task ShowWindow(WindowShowing show)
+        {
+            if (FirstStage.Visibility == Visibility.Visible)
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, FirstStage);
+            if (SecondStageManual.Visibility == Visibility.Visible)
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, SecondStageManual);
+            if (SecondStageAuto.Visibility == Visibility.Visible)
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, SecondStageAuto);
+            if (ThirdStage.Visibility == Visibility.Visible)
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ThirdStage);
+
+            if (ZoneManagementGrid.Visibility == Visibility.Visible)
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ZoneManagementGrid);
+            if (DeviceGrid.Visibility == Visibility.Visible)
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, DeviceGrid);
+
+            switch (show)
+            {
+                case WindowShowing.ChoosingAddingMethodDevice:
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, FirstStage);break;
+                case WindowShowing.FindDeviceManual:
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageManual); break;
+                case WindowShowing.FindDeviceAuto:
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageAuto); break;
+                case WindowShowing.ConfirmingFindedDevice:
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ThirdStage); break;
+
+                case WindowShowing.ChoosingLocationLEDs:
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ZoneManagementGrid); break;
+                case WindowShowing.DeviceManagement:
+                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, DeviceGrid); break;
+            }
+        }
+
         private async void ManualBtn_MouseEnter(object sender, MouseEventArgs e)
         {
             if(AutoLabel.IsVisible)
@@ -130,8 +179,7 @@ namespace Eugene_Ambilight
 
         private async void ManualBtn_Click(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, FirstStage);
-            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageManual);
+            await ShowWindow(WindowShowing.FindDeviceManual);
             IPTextBox.Focus();
             IPTextBox.SelectionStart = IPTextBox.Text.Length;
             IPTextBox.SelectionLength = 0;
@@ -139,8 +187,7 @@ namespace Eugene_Ambilight
 
         private async void AutoBtn_Click(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, FirstStage);
-            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageAuto);
+            await ShowWindow(WindowShowing.FindDeviceAuto);
             StartAddress.Focus();
             StartAddress.SelectionStart = StartAddress.Text.Length;
             StartAddress.SelectionLength = 0;
@@ -148,8 +195,7 @@ namespace Eugene_Ambilight
 
         private async void BackToFirstStage(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, (e.Source as Button)?.Name == SSMBackBtn.Name ? SecondStageManual : SecondStageAuto);
-            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, FirstStage);
+            await ShowWindow(WindowShowing.ChoosingAddingMethodDevice);
         }
 
         /// <summary>
@@ -228,7 +274,7 @@ namespace Eugene_Ambilight
         /// По умолчанию <see cref="bool">False</see>.
         /// </param>
         /// <returns>В случае успеха вернет объект с информацией об устройстве <see cref="DeviceEntity"/>, либо null.</returns>
-        private async Task<DeviceEntity?> FindDevice(string ip, bool ignoreOutputs = false)
+        private async Task<bool> FindDevice(string ip, bool ignoreOutputs = false)
         {
             HttpClient pingClient = new();
             pingClient.Timeout = TimeSpan.FromSeconds(5);
@@ -244,16 +290,14 @@ namespace Eugene_Ambilight
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();
-                    var responseJson = JsonConvert.DeserializeObject<DeviceEntity>(jsonString);
-                    if (responseJson == null) 
+                    if (!LoadDevice(jsonString)) 
                         throw new ArgumentNullException();
                     InfoProgressBar.Visibility = Visibility.Hidden;
                     SSMInfoLabel.Content = $"Успешно!";
                     await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel, color: ColorText.Success);
                     await Helper.CreateDelay(500);
-                    targetDevice = responseJson;
                     await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, SSMInfoLabel);
-                    return responseJson;
+                    return true;
                 }
                 else
                 {
@@ -278,8 +322,30 @@ namespace Eugene_Ambilight
                 }
                 cancellationTokenSource.Cancel(); pingClient.CancelPendingRequests();
             }
-            return null;
+            return false;
         }
+
+        private bool LoadDevice(string json)
+        {
+            try
+            {
+                var device = JsonConvert.DeserializeObject<DeviceEntity>(json);
+                if (device == null)
+                    return false;
+                else
+                {
+                    Settings.Default.DeviceInfo = json;
+                    Settings.Default.Save();
+                    targetDevice = device;
+                    return true;
+                }
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
+        }
+
         private void IPTextBox_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -293,21 +359,19 @@ namespace Eugene_Ambilight
                 InfoProgressBar.Visibility = Visibility.Visible;
                 await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SSMInfoLabel, color: ColorText.Regular);
                 await Helper.CreateDelay(200);
-                if (await FindDevice(IPTextBox.Text) != null && targetDevice != null)
+                if (await FindDevice(IPTextBox.Text))
                 {
-                    await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, SecondStageManual);
                     TSDeviceNameLabel.Text = targetDevice.Name;
                     TSDeviceTokenLabel.Text = targetDevice.Token;
                     TSDeviceLedsLabel.Text = Helper.GetEnding(targetDevice.Leds, Helper.LedsEnding);
-                    await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ThirdStage);
+                    await ShowWindow(WindowShowing.ConfirmingFindedDevice);
                 }
             }
         }
 
         private async void CancelDeviceBtn_Click(object sender, RoutedEventArgs e)
         {
-            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ThirdStage);
-            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageManual);
+            await ShowWindow(WindowShowing.FindDeviceManual);
             IPTextBox.Focus();
             IPTextBox.SelectionStart = IPTextBox.Text.Length;
             IPTextBox.SelectionLength = 0;
@@ -318,12 +382,10 @@ namespace Eugene_Ambilight
             Settings.Default.DeviceInfo = JsonConvert.SerializeObject(targetDevice);
             Settings.Default.Save();
             foreach(var item in Enumerable.Range(0, targetDevice?.Leds ?? 0)) 
-                PointList.Add(new PointWindow());
+                PointList.Add(new PointWindow(item + 1));
             if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
             await Helper.AnimateColor(Colors.LightGreen, DeviceState);
-            await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, StartGrid, withoutDelay: false);
-            MainGrid.Visibility = Visibility.Visible;
-            await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, ZoneManagementGrid);
+            await ShowWindow(WindowShowing.ChoosingLocationLEDs);
             PlacePoints();
         }
         #region auto adding in progress
@@ -368,9 +430,16 @@ namespace Eugene_Ambilight
 
         public async void PlacePoints()
         {
+            Topmost = true;
+            if(isLedsReversed != ReverseLedsToggle.IsChecked.GetValueOrDefault(false))
+            {
+                PointList.Reverse();
+                isLedsReversed = !isLedsReversed;
+            }
+            
             if (TargetPlace == 0)
             {
-                Topmost = true;
+                await Helper.PlaceWindows(PointList, WindowsPlace.CenterLine, ScreenInfo, targetDevice.Leds);
                 //if (PointList[0].IsVisible) PointList.ForEach(x => x.Hide());
                 double size = ScreenInfo.GetWidth() / targetDevice.Leds;
                 for (int i = 0; i < PointList.Count; i++)
@@ -379,14 +448,27 @@ namespace Eugene_Ambilight
                     double topTo = ScreenInfo.GetHeight() / 2 - size / 2;
                     PointList[i].Width = size;
                     PointList[i].Height = size;
-                    PointList[i].LedNumber.Content = i + 1;
                     if (!PointList[i].IsVisible)
                         PointList[i].Show();
-                    if (PointList[i].Left != leftTo && PointList[i].Top != topTo)
+                    if (PointList[i].Left != leftTo || PointList[i].Top != topTo)
                         await Helper.AnimateWindowPosition(PointList[i], (leftTo, topTo));
                 }
+            }else if(TargetPlace == 2)
+            {
+                (int LedsX, int LedsY) = ScreenInfo.GetLedsCount(targetDevice.Leds);
+                var topSide = PointList.Take(LedsX / 2).ToList();
+                var rightSide = PointList.Skip(topSide.Count).Take(LedsY / 2).ToList();
+                var bottomSide = PointList.Skip(topSide.Count + rightSide.Count).Take(LedsX / 2).ToList();
+                var leftSide = PointList.Skip(topSide.Count + rightSide.Count + bottomSide.Count).Take(LedsY / 2).ToList();
+
+                await Helper.PlaceWindows(topSide, WindowsPlace.Top, ScreenInfo, targetDevice.Leds);
+                await Helper.PlaceWindows(rightSide, WindowsPlace.Right, ScreenInfo, targetDevice.Leds);
+                await Helper.PlaceWindows(bottomSide, WindowsPlace.Bottom, ScreenInfo, targetDevice.Leds);
+                await Helper.PlaceWindows(leftSide, WindowsPlace.Left, ScreenInfo, targetDevice.Leds);
             }
-            
+            Focus();
         }
+
+        private void ReverseLedsToggle_Click(object sender, RoutedEventArgs e) => PlacePoints();
     }
 }

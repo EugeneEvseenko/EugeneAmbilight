@@ -98,5 +98,22 @@ namespace Eugene_Ambilight.Classes.Models
         /// </summary>
         /// <returns>Соотношение экрана по высоте.</returns>
         public int GetHeightAspectRatio() => HeightAspectRatio;
+
+        /// <summary>
+        /// Возвращает кортеж с общим количеством вмещаемых светодиодов по горизонтали и вертикали.
+        /// </summary>
+        /// <param name="ledsCount">Общее количество светодиодов устройства.</param>
+        /// <returns><see cref="Tuple"/> с общим количеством вмещаемых светодиодов по горизонтали и вертикали.</returns>
+        public (int, int) GetLedsCount(int ledsCount)
+        {
+            double allParts = WidthAspectRatio * 2 + HeightAspectRatio * 2;
+            double xPercent = WidthAspectRatio / allParts * 100;
+            double yPercent = HeightAspectRatio / allParts * 100;
+
+            var xLeds = (int)Math.Round((double)ledsCount / 100 * xPercent);
+            var yLeds = (int)Math.Round((double)ledsCount / 100 * yPercent);
+
+            return (xLeds * 2, yLeds * 2);
+        }
     }
 }

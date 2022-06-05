@@ -19,7 +19,11 @@ namespace Eugene_Ambilight.Windows
     /// </summary>
     public partial class PointWindow : Window
     {
-        public PointWindow() => InitializeComponent();
+        public PointWindow(int number)
+        {
+            InitializeComponent();
+            LedNumber.Content = number.ToString();
+        }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {

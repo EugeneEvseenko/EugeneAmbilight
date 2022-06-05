@@ -1,4 +1,6 @@
-﻿using Eugene_Ambilight.Enums;
+﻿using Eugene_Ambilight.Classes.Models;
+using Eugene_Ambilight.Enums;
+using Eugene_Ambilight.Windows;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -26,6 +28,27 @@ namespace Eugene_Ambilight.Classes
         private static DoubleAnimation opacityHide = new DoubleAnimation(0.0, TimeSpan.FromMilliseconds(300))
         {
             EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
+        };
+
+        private static DoubleAnimation animationWidthToLine = new DoubleAnimation(200, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationToZero = new DoubleAnimation(0, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationToBasicHeightLine = new DoubleAnimation(2, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationHeightToRect = new DoubleAnimation(150, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
+        };
+        private static DoubleAnimation animationRadiusToRect = new DoubleAnimation(10, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
         };
 
         /// <summary>
@@ -106,51 +129,122 @@ namespace Eugene_Ambilight.Classes
                 await Task.Delay((int)speed);
         }
 
+        /// <summary>
+        /// Анимирование окна.
+        /// </summary>
+        /// <param name="element">Окно <see cref="Window"/>.</param>
+        /// <param name="position">Кортеж координат конечной точки анимации. X, Y.</param>
+        /// <param name="speed">Скорость анимации.</param>
+        /// <param name="withoutDelay">
+        ///     <para>Если <see cref="bool">False</see> - метод будет ожидать конца анимации объекта.</para>
+        ///     <para>По умолчанию - <see cref="bool">True</see>.</para>
+        /// </param>
         public static async Task AnimateWindowPosition(Window element, (double, double) position, Speed speed = Speed.Normal, bool withoutDelay = true)
         {
             var leftAnim = new DoubleAnimation(position.Item1, TimeSpan.FromMilliseconds((double)speed))
             {
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseIn }
+                EasingFunction = new PowerEase { EasingMode = EasingMode.EaseOut }
             };
             var topAnim = new DoubleAnimation(position.Item2, TimeSpan.FromMilliseconds((double)speed))
             {
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseIn }
+                EasingFunction = new PowerEase { EasingMode = EasingMode.EaseIn }
             };
+            element.Focus();
             leftAnim.Completed += delegate (object animSender, EventArgs anim)
              {
+                 //Task.Delay((int)speed);
                  element.BeginAnimation(Window.LeftProperty, null);
+                 element.Left = position.Item1;
+                 
              };
-            topAnim.Completed += delegate (object animSender, EventArgs anim)
+            topAnim.Completed += delegate(object animSender, EventArgs anim)
             {
+                //Task.Delay((int)speed);
                 element.BeginAnimation(Window.TopProperty, null);
+                element.Top = position.Item2;
             };
+
             element.BeginAnimation(Window.LeftProperty, leftAnim);
             element.BeginAnimation(Window.TopProperty, topAnim);
-
             if (!withoutDelay)
                 await Task.Delay((int)speed);
         }
 
-        private static DoubleAnimation animationWidthToLine = new DoubleAnimation(200, TimeSpan.FromMilliseconds((double)Speed.Normal))
+        /// <summary>
+        /// Метод для расположения коллекций окон <see cref="PointWindow"/> в нужном порядке.
+        /// </summary>
+        /// <param name="windows">Список окон.</param>
+        /// <param name="place">Место расположения. </param>
+        /// <param name="screen">"Экземпляр объекта <see cref="ScreenEntity"/> для вспомогательных операции.</param>
+        /// <param name="ledsCount">Общее количество светодиодов.</param>
+        public static async Task PlaceWindows(List<PointWindow> windows, WindowsPlace place, ScreenEntity screen, int ledsCount)
         {
-            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
-        };
-        private static DoubleAnimation animationToZero = new DoubleAnimation(0, TimeSpan.FromMilliseconds((double)Speed.Normal))
-        {
-            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
-        };
-        private static DoubleAnimation animationToBasicHeightLine = new DoubleAnimation(2, TimeSpan.FromMilliseconds((double)Speed.Normal))
-        {
-            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
-        };
-        private static DoubleAnimation animationHeightToRect = new DoubleAnimation(150, TimeSpan.FromMilliseconds((double)Speed.Normal))
-        {
-            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
-        };
-        private static DoubleAnimation animationRadiusToRect = new DoubleAnimation(10, TimeSpan.FromMilliseconds((double)Speed.Normal))
-        {
-            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
-        };
+            double sizeX = 0, sizeY = 0;
+            Func<int, double> calcTop = (x) => 0, calcLeft = (x) => 0;
+            switch (place)
+            {
+                case WindowsPlace.CenterLine:
+                    {
+                        sizeX = screen.GetWidth() / ledsCount;
+                        sizeY = sizeX;
+                        calcTop = (i) => screen.GetHeight() / 2 - sizeY / 2;
+                        calcLeft = (i) => i * sizeY;
+                    }
+                    break;
+                case WindowsPlace.Top:
+                    {
+                        sizeX = screen.GetWidth() / windows.Count;
+                        sizeY = screen.GetHeight() / ledsCount;
+                        calcLeft = (i) => i * sizeX;
+                    }
+                    break;
+                case WindowsPlace.Bottom:
+                    {
+                        sizeX = screen.GetWidth() / windows.Count;
+                        sizeY = screen.GetHeight() / ledsCount;
+                        calcTop = (i) => screen.GetHeight() - sizeY;
+                        calcLeft = (i) => screen.GetWidth() - i * sizeX - sizeX;
+                    }
+                    break;
+                case WindowsPlace.Right:
+                    {
+                        sizeX = screen.GetWidth() / ledsCount;
+                        sizeY = screen.GetHeight() / windows.Count;
+                        calcTop = (i) => i * sizeY;
+                        calcLeft = (i) => screen.GetWidth() - sizeX;
+                    }
+                    break;
+                case WindowsPlace.Left:
+                    {
+                        sizeX = screen.GetWidth() / ledsCount;
+                        sizeY = screen.GetHeight() / windows.Count;
+                        calcTop = (i) => screen.GetHeight() - sizeY * i - sizeY;
+                    }
+                    break;
+            }
+
+            for (int i = 0; i < windows.Count; i++)
+            {
+                double topTo = calcTop.Invoke(i);
+                double leftTo = calcLeft.Invoke(i);
+                windows[i].Width = sizeX;
+                windows[i].Height = sizeY;
+                if (!windows[i].IsVisible)
+                    windows[i].Show();
+                if (windows[i].Left != leftTo || windows[i].Top != topTo)
+                    await AnimateWindowPosition(windows[i], (leftTo, topTo), Speed.Normal);
+            }
+        }
+
+        /// <summary>
+        /// Вспомогательный метод анимации этапа <see cref="WindowShowing.ChoosingLocationLEDs"/>.
+        /// </summary>
+        /// <param name="rect">Объект <see cref="System.Windows.Shapes.Rectangle rect"/></param>
+        /// <param name="index">Индекс выбранного расположения светодиодов.</param>
+        /// <param name="withoutDelay">
+        ///     <para>Если <see cref="bool">False</see> - метод будет ожидать конца анимации объекта.</para>
+        ///     <para>По умолчанию - <see cref="bool">True</see>.</para>
+        /// </param>
         public static async Task AnimateRect(System.Windows.Shapes.Rectangle rect, byte index, bool withoutDelay = true)
         {
             switch (index)
@@ -207,7 +301,7 @@ namespace Eugene_Ambilight.Classes
             }
         }
         /// <summary>
-        /// Искуственная задержка.
+        /// Искусственная задержка.
         /// </summary>
         /// <param name="millis">Время в миллисекундах.</param>
         public static Task CreateDelay(int millis)
