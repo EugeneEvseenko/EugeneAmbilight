@@ -15,17 +15,17 @@ namespace Eugene_Ambilight.Classes.Models
         /// <summary>
         /// Ширина в пикселях.
         /// </summary>
-        private int Width { get; set; }
+        private double Width { get; set; }
 
         /// <summary>
         /// Высота в пикселях.
         /// </summary>
-        private int Height { get; set; }
+        private double Height { get; set; }
 
         /// <summary>
         /// Количество пикселей на экране.
         /// </summary>
-        private int Resolution { get; set; }
+        private double Resolution { get; set; }
 
         /// <summary>
         /// Соотношение сторон по ширине
@@ -58,12 +58,12 @@ namespace Eugene_Ambilight.Classes.Models
         /// </summary>
         public void Reload()
         {
-            Width = (int)SystemParameters.PrimaryScreenWidth;
-            Height = (int)SystemParameters.PrimaryScreenHeight;
+            Width = SystemParameters.PrimaryScreenWidth;
+            Height = SystemParameters.PrimaryScreenHeight;
             Resolution = Width * Height;
-            int nGCD = GetGreatestCommonDivisor(Width, Height);
-            WidthAspectRatio = Width / nGCD;
-            HeightAspectRatio = Height / nGCD;
+            int nGCD = GetGreatestCommonDivisor((int)Width, (int)Height);
+            WidthAspectRatio = (int)Width / nGCD;
+            HeightAspectRatio = (int)Height / nGCD;
         }
 
         private int GetGreatestCommonDivisor(int width, int height)
@@ -73,19 +73,19 @@ namespace Eugene_Ambilight.Classes.Models
         /// Возвращает текущее значение ширины экрана в пикселях.
         /// </summary>
         /// <returns>Ширина экрана в пикселях.</returns>
-        public int GetWidth() => Width;
+        public double GetWidth() => Width;
 
         /// <summary>
         /// Возвращает текущее значение высоты экрана в пикселях.
         /// </summary>
         /// <returns>Высота экрана в пикселях.</returns>
-        public int GetHeight() => Height;
+        public double GetHeight() => Height;
 
         /// <summary>
         /// Возвращает текущее значение разрешения экрана в пикселях.
         /// </summary>
         /// <returns>Разрешение экрана в пикселях.</returns>
-        public int GetResolution() => Resolution;
+        public double GetResolution() => Resolution;
 
         /// <summary>
         /// Возвращает текущее значение соотношения экрана по ширине.

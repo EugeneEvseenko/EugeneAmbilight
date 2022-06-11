@@ -6,6 +6,21 @@
     public enum Speed
     {
         /// <summary>
+        /// Автоматическая скорость
+        /// </summary>
+        Auto = -1,
+
+        /// <summary>
+        /// Моментальная - 0 миллисекунд
+        /// </summary>
+        Momental,
+
+        /// <summary>
+        /// Очень медленная - 50 миллисекунд
+        /// </summary>
+        VeryFast = 50,
+
+        /// <summary>
         /// Быстрая - 100 миллисекунд
         /// </summary>
         Fast = 100,

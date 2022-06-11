@@ -23,6 +23,7 @@ namespace Eugene_Ambilight.Windows
         {
             InitializeComponent();
             LedNumber.Content = number.ToString();
+            ToolTip = number.ToString();
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
