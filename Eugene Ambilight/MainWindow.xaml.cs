@@ -337,6 +337,7 @@ namespace Eugene_Ambilight
                     Settings.Default.DeviceInfo = json;
                     Settings.Default.Save();
                     targetDevice = device;
+                    targetDevice = new DeviceEntity(device.Name, device.Token, 20);
                     return true;
                 }
             }
@@ -428,47 +429,80 @@ namespace Eugene_Ambilight
             await Helper.AnimateRect(RectDemonstration, TargetPlace); PlacePoints();
         }
 
+        private async void HideStartLedsButtons(AnimAction action)
+        {
+            await Helper.AnimateDouble(action, AnimType.Width, StartLeftTopRB, enableFade: true);
+            await Helper.AnimateDouble(action, AnimType.Width, StartRightTopRB, enableFade: true);
+            await Helper.AnimateDouble(action, AnimType.Width, StartLeftBottomRB, enableFade: true);
+            await Helper.AnimateDouble(action, AnimType.Width, StartRightBottomRB, enableFade: true);
+        }
+
         public async void PlacePoints()
         {
-            Topmost = true;
-            if(isLedsReversed != ReverseLedsToggle.IsChecked.GetValueOrDefault(false))
+            if (TargetPlace != 2)
+                if (StartRightBottomRB.Opacity > 0.0)
+                    HideStartLedsButtons(AnimAction.Hide);
+            if (isLedsReversed != ReverseLedsToggle.IsChecked.GetValueOrDefault(false))
             {
                 PointList.Reverse();
                 isLedsReversed = !isLedsReversed;
             }
-            
             if (TargetPlace == 0)
             {
-                await Helper.PlaceWindows(PointList, WindowsPlace.CenterLine, ScreenInfo, targetDevice.Leds);
-                //if (PointList[0].IsVisible) PointList.ForEach(x => x.Hide());
-                double size = ScreenInfo.GetWidth() / targetDevice.Leds;
-                for (int i = 0; i < PointList.Count; i++)
-                {
-                    double leftTo = i * size;
-                    double topTo = ScreenInfo.GetHeight() / 2 - size / 2;
-                    PointList[i].Width = size;
-                    PointList[i].Height = size;
-                    if (!PointList[i].IsVisible)
-                        PointList[i].Show();
-                    if (PointList[i].Left != leftTo || PointList[i].Top != topTo)
-                        await Helper.AnimateWindowPosition(PointList[i], (leftTo, topTo));
-                }
+                await Helper.PlaceWindows((WindowsPlace.CenterLine, PointList), ScreenInfo, targetDevice.Leds);
             }else if(TargetPlace == 2)
             {
+                if (StartRightBottomRB.Opacity < 1.0)
+                    HideStartLedsButtons(AnimAction.Show);
                 (int LedsX, int LedsY) = ScreenInfo.GetLedsCount(targetDevice.Leds);
-                var topSide = PointList.Take(LedsX / 2).ToList();
-                var rightSide = PointList.Skip(topSide.Count).Take(LedsY / 2).ToList();
-                var bottomSide = PointList.Skip(topSide.Count + rightSide.Count).Take(LedsX / 2).ToList();
-                var leftSide = PointList.Skip(topSide.Count + rightSide.Count + bottomSide.Count).Take(LedsY / 2).ToList();
 
-                await Helper.PlaceWindows(topSide, WindowsPlace.Top, ScreenInfo, targetDevice.Leds);
-                await Helper.PlaceWindows(rightSide, WindowsPlace.Right, ScreenInfo, targetDevice.Leds);
-                await Helper.PlaceWindows(bottomSide, WindowsPlace.Bottom, ScreenInfo, targetDevice.Leds);
-                await Helper.PlaceWindows(leftSide, WindowsPlace.Left, ScreenInfo, targetDevice.Leds);
+                (WindowsPlace, List<PointWindow>) firstSide, secondSide, thirdSide, fourthSide;
+
+                if (StartLeftTopRB.IsChecked.GetValueOrDefault(false))
+                {
+                    firstSide = (WindowsPlace.Top, PointList.Take(LedsX / 2).ToList());
+                    secondSide = (WindowsPlace.Right, PointList.Skip(firstSide.Item2.Count).Take(LedsY / 2).ToList());
+                    thirdSide = (WindowsPlace.Bottom, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsX / 2).ToList());
+                    fourthSide = (WindowsPlace.Left, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsY / 2).ToList());
+                }
+                else if (StartRightTopRB.IsChecked.GetValueOrDefault(false))
+                {
+                    firstSide = (WindowsPlace.Right, PointList.Take(LedsY / 2).ToList());
+                    secondSide = (WindowsPlace.Bottom, PointList.Skip(firstSide.Item2.Count).Take(LedsX / 2).ToList());
+                    thirdSide = (WindowsPlace.Left, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsY / 2).ToList());
+                    fourthSide = (WindowsPlace.Top, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsX / 2).ToList());
+                }
+                else if (StartRightBottomRB.IsChecked.GetValueOrDefault(false))
+                {
+                    firstSide = (WindowsPlace.Bottom, PointList.Take(LedsX / 2).ToList());
+                    secondSide = (WindowsPlace.Left, PointList.Skip(firstSide.Item2.Count).Take(LedsY / 2).ToList());
+                    thirdSide = (WindowsPlace.Top, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsX / 2).ToList());
+                    fourthSide = (WindowsPlace.Right, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsY / 2).ToList());
+                }
+                else
+                {
+                    firstSide = (WindowsPlace.Left, PointList.Take(LedsY / 2).ToList());
+                    secondSide = (WindowsPlace.Top, PointList.Skip(firstSide.Item2.Count).Take(LedsX / 2).ToList());
+                    thirdSide = (WindowsPlace.Right, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsY / 2).ToList());
+                    fourthSide = (WindowsPlace.Bottom, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsX / 2).ToList());
+                }
+                var topTask = Helper.PlaceWindows(firstSide, ScreenInfo, targetDevice.Leds);
+                var rightTask = Helper.PlaceWindows(secondSide, ScreenInfo, targetDevice.Leds);
+                var bottomTask = Helper.PlaceWindows(thirdSide, ScreenInfo, targetDevice.Leds);
+                var leftTask = Helper.PlaceWindows(fourthSide, ScreenInfo, targetDevice.Leds);
+                await Task.WhenAll(topTask, rightTask, bottomTask, leftTask);
             }
+            Topmost = false;
+            Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false);
             Focus();
         }
 
-        private void ReverseLedsToggle_Click(object sender, RoutedEventArgs e) => PlacePoints();
+        private void PlaceLedsEvent(object sender, RoutedEventArgs e) => PlacePoints();
+
+        private void TopmostToggle_Click(object sender, RoutedEventArgs e)
+        {
+            PointList.ForEach(item => item.Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false));
+            Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false);
+        }
     }
 }

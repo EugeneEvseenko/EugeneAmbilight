@@ -1,6 +1,8 @@
 ﻿using Eugene_Ambilight.Classes.Models;
 using Eugene_Ambilight.Enums;
 using Eugene_Ambilight.Windows;
+using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -19,6 +21,8 @@ namespace Eugene_Ambilight.Classes
     /// </summary>
     public static class Helper
     {
+        private static Logger errLogger { get; set; } = LogManager.GetLogger("errLogger");
+        private static Logger debugLogger { get; set; } = LogManager.GetLogger("debugLogger");
         private static Dictionary<string, double> HeightDict = new();
         private static Dictionary<string, double> WidthDict = new();
         private static DoubleAnimation opacityShow = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(300))
@@ -155,7 +159,7 @@ namespace Eugene_Ambilight.Classes
                  //Task.Delay((int)speed);
                  element.BeginAnimation(Window.LeftProperty, null);
                  element.Left = position.Item1;
-                 
+
              };
             topAnim.Completed += delegate(object animSender, EventArgs anim)
             {
@@ -177,63 +181,82 @@ namespace Eugene_Ambilight.Classes
         /// <param name="place">Место расположения. </param>
         /// <param name="screen">"Экземпляр объекта <see cref="ScreenEntity"/> для вспомогательных операции.</param>
         /// <param name="ledsCount">Общее количество светодиодов.</param>
-        public static async Task PlaceWindows(List<PointWindow> windows, WindowsPlace place, ScreenEntity screen, int ledsCount)
+        public static async Task PlaceWindows((WindowsPlace, List<PointWindow>) windows, ScreenEntity screen, int ledsCount)
         {
             double sizeX = 0, sizeY = 0;
             Func<int, double> calcTop = (x) => 0, calcLeft = (x) => 0;
-            switch (place)
+            switch (windows.Item1)
             {
                 case WindowsPlace.CenterLine:
                     {
-                        sizeX = screen.GetWidth() / ledsCount;
-                        sizeY = sizeX;
+                        sizeX = Math.Round(screen.GetWidth() / ledsCount);
+                        sizeY = sizeX <= 50 ? sizeX * 2 : sizeX;
                         calcTop = (i) => screen.GetHeight() / 2 - sizeY / 2;
-                        calcLeft = (i) => i * sizeY;
+                        calcLeft = (i) => i * sizeX;
                     }
                     break;
                 case WindowsPlace.Top:
                     {
-                        sizeX = screen.GetWidth() / windows.Count;
-                        sizeY = screen.GetHeight() / ledsCount;
+                        sizeX = Math.Round(screen.GetWidth() / windows.Item2.Count);
+                        sizeY = Math.Round(screen.GetHeight() * 0.1);
                         calcLeft = (i) => i * sizeX;
                     }
                     break;
                 case WindowsPlace.Bottom:
                     {
-                        sizeX = screen.GetWidth() / windows.Count;
-                        sizeY = screen.GetHeight() / ledsCount;
+                        sizeX = Math.Round(screen.GetWidth() / windows.Item2.Count);
+                        sizeY = Math.Round(screen.GetHeight() * 0.1);
                         calcTop = (i) => screen.GetHeight() - sizeY;
                         calcLeft = (i) => screen.GetWidth() - i * sizeX - sizeX;
                     }
                     break;
                 case WindowsPlace.Right:
                     {
-                        sizeX = screen.GetWidth() / ledsCount;
-                        sizeY = screen.GetHeight() / windows.Count;
+                        sizeX = Math.Round(screen.GetHeight() * 0.1);
+                        sizeY = Math.Round(screen.GetHeight() / windows.Item2.Count);
                         calcTop = (i) => i * sizeY;
                         calcLeft = (i) => screen.GetWidth() - sizeX;
                     }
                     break;
                 case WindowsPlace.Left:
                     {
-                        sizeX = screen.GetWidth() / ledsCount;
-                        sizeY = screen.GetHeight() / windows.Count;
+                        sizeX = Math.Round(screen.GetHeight() * 0.1);
+                        sizeY = Math.Round(screen.GetHeight() / windows.Item2.Count);
                         calcTop = (i) => screen.GetHeight() - sizeY * i - sizeY;
                     }
                     break;
             }
+            
+            debugLogger.Debug("\n" + JsonConvert.SerializeObject(new
+            {
+                WindowsPlace = windows.Item1.ToString(),
+                SizeX = sizeX,
+                SizeY = sizeY,
+                ScreenInfo = new
+                {
+                    Width = screen.GetWidth(),
+                    Height = screen.GetHeight(),
+                    HeightAspectRatio = screen.GetHeightAspectRatio(),
+                    WidthAspectRatio = screen.GetWidthAspectRatio(),
+                },
+                LedsCount = ledsCount
+            }, Formatting.Indented));
 
-            for (int i = 0; i < windows.Count; i++)
+            List<Task> tasks = new();
+            for (int i = 0; i < windows.Item2.Count; i++)
             {
                 double topTo = calcTop.Invoke(i);
                 double leftTo = calcLeft.Invoke(i);
-                windows[i].Width = sizeX;
-                windows[i].Height = sizeY;
-                if (!windows[i].IsVisible)
-                    windows[i].Show();
-                if (windows[i].Left != leftTo || windows[i].Top != topTo)
-                    await AnimateWindowPosition(windows[i], (leftTo, topTo), Speed.Normal);
+                debugLogger.Debug($"Window: {windows.Item2[i].LedNumber.Content} X:{leftTo} Y:{topTo}");
+                windows.Item2[i].Width = sizeX;
+                windows.Item2[i].Height = sizeY;
+                if (!windows.Item2[i].IsVisible)
+                    windows.Item2[i].Show();
+                tasks.Add(AnimateWindowPosition(windows.Item2[i], (leftTo, topTo), Speed.Normal));
+                //if (windows[i].Left != leftTo || windows[i].Top != topTo)
+                    //await AnimateWindowPosition(windows[i], (leftTo, topTo), Speed.Normal);
             }
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>
