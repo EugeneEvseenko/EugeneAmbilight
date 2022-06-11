@@ -71,6 +71,7 @@ namespace Eugene_Ambilight
         private readonly string[] LedPlaceVariants = new string[] { "Линия", "Свой", "Прямоугольник" };
         private List<PointWindow> PointList = new();
         private readonly ScreenEntity ScreenInfo = new();
+        private bool MockEnabled = true;
         #endregion
         //private async void btnSend_Click(object sender, RoutedEventArgs e)
         //{
@@ -287,9 +288,11 @@ namespace Eugene_Ambilight
                 pingClient.BaseAddress = new Uri(address);
                 var response = await pingClient.GetAsync("/ping", cancellationTokenSource.Token);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                if (response.StatusCode == System.Net.HttpStatusCode.OK || MockEnabled)
                 {
-                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var jsonString = !MockEnabled 
+                        ? await response.Content.ReadAsStringAsync() 
+                        : "{\"name\":\"ESP - 12F\",\"token\":\"ecu_9SYsb8rQNnaZ3P5wFzwyGt12W5vL\",\"leds\":30}";
                     if (!LoadDevice(jsonString)) 
                         throw new ArgumentNullException();
                     InfoProgressBar.Visibility = Visibility.Hidden;
@@ -337,7 +340,7 @@ namespace Eugene_Ambilight
                     Settings.Default.DeviceInfo = json;
                     Settings.Default.Save();
                     targetDevice = device;
-                    targetDevice = new DeviceEntity(device.Name, device.Token, 20);
+                    //targetDevice = new DeviceEntity(device.Name, device.Token, 20);
                     return true;
                 }
             }
