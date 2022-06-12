@@ -15,6 +15,11 @@ namespace Eugene_Ambilight.Enums
         ChoosingAddingMethodDevice,
 
         /// <summary>
+        /// Окно с выбором метода поиска устройства после неуспешной загрзуки устройства.
+        /// </summary>
+        ChoosingAddingMethodDeviceAfterError,
+
+        /// <summary>
         /// Окно с ручным добавлением по IP.
         /// </summary>
         FindDeviceManual,

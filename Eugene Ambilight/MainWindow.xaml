@@ -31,9 +31,10 @@
             </Grid>
             <Grid Margin="0,35,0,0">
                 <!--Start-->
-                <Grid x:Name="FirstStage" Visibility="Hidden">
-                    <TextBlock HorizontalAlignment="Center" Margin="0,25,0,0" TextWrapping="NoWrap" Text="Давай найдем устройство..." VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" Width="243" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
-                    <TextBlock HorizontalAlignment="Center" Margin="0,55,0,0" TextWrapping="NoWrap" Text="Как будем искать?" VerticalAlignment="Top" Foreground="White" FontSize="20" Height="30" Width="175" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
+                <Grid x:Name="FirstStage" Visibility="Visible">
+                    <TextBlock x:Name="ErrorLoadingDeviceTB" HorizontalAlignment="Center" Margin="0,7,0,0" TextWrapping="NoWrap" Text="Произошла ошибка при загрузке устройства" VerticalAlignment="Top" Foreground="IndianRed" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,25,0,0" TextWrapping="NoWrap" Text="Давай найдем устройство..." VerticalAlignment="Top" Foreground="White" FontSize="20" LineStackingStrategy="MaxHeight" FontWeight="Thin"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,55,0,0" TextWrapping="NoWrap" Text="Как будем искать?" VerticalAlignment="Top" Foreground="White" FontSize="20" LineStackingStrategy="MaxHeight" FontWeight="DemiBold"/>
                     <Label Content="В разработке" Margin="0,207,0,0" Foreground="IndianRed" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Top"/>
                     <Button x:Name="ManualBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="У меня есть адрес" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,126,0,0" Height="38" Width="158" MouseEnter="ManualBtn_MouseEnter" MouseLeave="ManualBtn_MouseLeave" Click="ManualBtn_Click"/>
                     <Button x:Name="AutoBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Content="Я не знаю адрес" Style="{DynamicResource SuccessButton}" Padding="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,169,0,0" Height="38" Width="158" MouseEnter="AutoBtn_MouseEnter" MouseLeave="AutoBtn_MouseLeave" Click="AutoBtn_Click" IsEnabled="False"/>
@@ -92,7 +93,7 @@
                     </Button>
                 </Grid>
                 <!--Main-->
-                <Grid x:Name="ZoneManagementGrid" Visibility="Visible">
+                <Grid x:Name="ZoneManagementGrid" Visibility="Hidden">
                     <Button x:Name="ZMBackBtn" Style="{DynamicResource RegularButton}" BorderThickness="0" HorizontalAlignment="Left" Margin="0,0,0,0" Width="{Binding Height, ElementName=SSMBackBtn}" Height="35" VerticalAlignment="Top" Foreground="#FF969AA5">
                         <Image Height="20" Width="20" Source="/Images/back.png"/>
                     </Button>

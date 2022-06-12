@@ -47,7 +47,7 @@ namespace Eugene_Ambilight
                     errLogger.Error($"Device <>{Settings.Default.DeviceInfo}<> loading failed. Reset settigns.");
                     Settings.Default.Reset();
                     Settings.Default.Save();
-                    await ShowWindow(WindowShowing.ChoosingAddingMethodDevice);
+                    await ShowWindow(WindowShowing.ChoosingAddingMethodDeviceAfterError);
                 }
             }
             else
@@ -143,6 +143,10 @@ namespace Eugene_Ambilight
             switch (show)
             {
                 case WindowShowing.ChoosingAddingMethodDevice:
+                case WindowShowing.ChoosingAddingMethodDeviceAfterError:
+                    ErrorLoadingDeviceTB.Visibility = show == WindowShowing.ChoosingAddingMethodDeviceAfterError 
+                        ? Visibility.Visible
+                        : Visibility.Hidden;
                     await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, FirstStage);break;
                 case WindowShowing.FindDeviceManual:
                     await Helper.AnimateDouble(AnimAction.Show, AnimType.Height, SecondStageManual); break;
