@@ -246,6 +246,10 @@ namespace Eugene_Ambilight
                 else if (text.Count(a => a == '.') != 3/* || !text.StartsWith("192.168.")*/) {  // 🤷‍♂️
                     await GoError(item.errLabel, "Неверный формат адреса"); errors = true;
                 }
+                else if (text.Count(a => char.IsLetter(a)) != 0)
+                {
+                    await GoError(item.errLabel, "Никаких букв в адресе! IPv4!"); errors = true;
+                }
             }
             if (errors) return false;
             if (controls.Length > 1)
@@ -350,6 +354,7 @@ namespace Eugene_Ambilight
             }
             catch(Exception ex)
             {
+                errLogger.Error(ex);
                 return false;
             }
         }
