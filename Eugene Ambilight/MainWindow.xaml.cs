@@ -1,6 +1,7 @@
 ﻿using Eugene_Ambilight.Classes;
 using Eugene_Ambilight.Classes.Models;
 using Eugene_Ambilight.Enums;
+using Eugene_Ambilight.Integrations;
 using Eugene_Ambilight.Properties;
 using Eugene_Ambilight.Windows;
 using Newtonsoft.Json;
@@ -15,6 +16,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace Eugene_Ambilight
 {
@@ -72,6 +74,7 @@ namespace Eugene_Ambilight
         private List<PointWindow> PointList = new();
         private readonly ScreenEntity ScreenInfo = new();
         private bool MockEnabled = true;
+        private MainClient mainClient = new();
         #endregion
         //private async void btnSend_Click(object sender, RoutedEventArgs e)
         //{
@@ -136,7 +139,11 @@ namespace Eugene_Ambilight
                 await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ThirdStage);
 
             if (ZoneManagementGrid.Visibility == Visibility.Visible)
+            {
                 await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ZoneManagementGrid);
+                PointList.ForEach(x => x.Hide());
+            }
+                
             if (DeviceGrid.Visibility == Visibility.Visible)
                 await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, DeviceGrid);
 
@@ -394,8 +401,12 @@ namespace Eugene_Ambilight
         {
             Settings.Default.DeviceInfo = JsonConvert.SerializeObject(targetDevice);
             Settings.Default.Save();
-            foreach(var item in Enumerable.Range(0, targetDevice?.Leds ?? 0)) 
-                PointList.Add(new PointWindow(item + 1));
+            if(PointList.Count != targetDevice?.Leds)
+            {
+                PointList.Clear();
+                foreach (var item in Enumerable.Range(0, targetDevice?.Leds ?? 0))
+                    PointList.Add(new PointWindow(item + 1));
+            }
             if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
             await Helper.AnimateColor(Colors.LightGreen, DeviceState);
             await ShowWindow(WindowShowing.ChoosingLocationLEDs);
@@ -515,6 +526,48 @@ namespace Eugene_Ambilight
         {
             PointList.ForEach(item => item.Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false));
             Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false);
+        }
+
+        private async void ZMBackBtn_Click(object sender, RoutedEventArgs e)
+        {
+            await ShowWindow(WindowShowing.ConfirmingFindedDevice);
+        }
+
+        private async Task CheckUpdate()
+        {
+            await Helper.CreateDelay(500);
+            UpdateAvailableIcon.Visibility = Visibility.Collapsed;
+            CheckUpdateIcon.Visibility = Visibility.Visible;
+            await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, UpdateTB, Speed.Normal,
+                text: "Проверка обновлений", withoutDelay: false, enableFade: false);
+            Helper.RotateAnimation(UpdateAnimAngle);
+            var update = await mainClient.CheckUpdate();
+            await Helper.CreateDelay(3000);
+            Helper.RotateAnimation(UpdateAnimAngle, true);
+            if (UpdateAvailableIcon.Fill.IsFrozen) UpdateAvailableIcon.Fill = new SolidColorBrush(Colors.Gray);
+            if (CheckUpdateIcon.Fill.IsFrozen) CheckUpdateIcon.Fill = new SolidColorBrush(Colors.Gray);
+            if (update != null)
+            {
+                await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, UpdateTB, Speed.Normal,
+                    text: "Доступно обновление", withoutDelay: false, enableFade: false, color: ColorText.Success);
+                await Helper.AnimateDouble(AnimAction.Hide, AnimType.Width, CheckUpdateIcon, Speed.Normal,
+                    withoutDelay: false);
+                await Helper.CreateDelay(1000);
+                await Helper.AnimateDouble(AnimAction.Show, AnimType.Width, UpdateAvailableIcon, Speed.Normal,
+                    withoutDelay: false);
+                await Helper.AnimateColor(Colors.LightGreen, UpdateAvailableIcon);
+            }
+            else
+            {
+                await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, UpdateTB, Speed.Normal,
+                text: "Обновления не найдены", withoutDelay: false, enableFade: false, color: ColorText.Error);
+                await Helper.AnimateColor(Colors.LightGreen, CheckUpdateIcon);
+            }
+        }
+
+        private async void UpdateViewBox_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            await CheckUpdate();
         }
     }
 }

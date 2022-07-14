@@ -25,6 +25,11 @@ namespace Eugene_Ambilight.Classes
         private static Logger debugLogger { get; set; } = LogManager.GetLogger("debugLogger");
         private static Dictionary<string, double> HeightDict = new();
         private static Dictionary<string, double> WidthDict = new();
+        private static DoubleAnimation rotateAnimation = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromMilliseconds(1000)))
+        {
+            EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut },
+            RepeatBehavior = RepeatBehavior.Forever
+        };
         private static DoubleAnimation opacityShow = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(300))
         {
             EasingFunction = new CircleEase { EasingMode = EasingMode.EaseIn }
@@ -252,7 +257,8 @@ namespace Eugene_Ambilight.Classes
                 windows.Item2[i].Height = sizeY;
                 if (!windows.Item2[i].IsVisible)
                     windows.Item2[i].Show();
-                tasks.Add(AnimateWindowPosition(windows.Item2[i], (leftTo, topTo), Speed.Normal));
+                if (windows.Item2[i].Left != leftTo || windows.Item2[i].Top != topTo)
+                    tasks.Add(AnimateWindowPosition(windows.Item2[i], (leftTo, topTo), Speed.Normal));
                 //if (windows[i].Left != leftTo || windows[i].Top != topTo)
                     //await AnimateWindowPosition(windows[i], (leftTo, topTo), Speed.Normal);
             }
@@ -376,6 +382,11 @@ namespace Eugene_Ambilight.Classes
                 ? "" 
                 : $"{number} " +
                 titles[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[Math.Min(number % 10, 5)]];
+        }
+
+        public static void RotateAnimation(Animatable element, bool stop = false)
+        {
+            element.BeginAnimation(RotateTransform.AngleProperty, stop ? null : rotateAnimation);
         }
     }
 }

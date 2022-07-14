@@ -6,4 +6,4 @@ using System.Windows;
 [assembly: AssemblyCopyright("Copyright © Eugene Evseenko 2022")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyCulture("")]
-//[assembly: AssemblyFileVersion("1.0.0.* Alpha")]
+[assembly: AssemblyFileVersion("0")]
