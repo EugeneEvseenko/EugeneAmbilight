@@ -37,16 +37,16 @@ namespace Eugene_Ambilight
         {
             if (!string.IsNullOrEmpty(Settings.Default.DeviceInfo))
             {
-                debugLogger.Info($"App started with saved device {Settings.Default.DeviceInfo}");
+                DebugLogger.Info($"App started with saved device {Settings.Default.DeviceInfo}");
                 if (LoadDevice(Settings.Default.DeviceInfo))
                 {
-                    debugLogger.Info($"Loading {targetDevice.Name} device was successful");
+                    DebugLogger.Info($"Loading {_targetDevice.Name} device was successful");
                     await ShowWindow(WindowShowing.ChoosingAddingMethodDevice);
                     //await ShowWindow(WindowShowing.DeviceManagement);
                 }
                 else
                 {
-                    errLogger.Error($"Device <>{Settings.Default.DeviceInfo}<> loading failed. Reset settigns.");
+                    ErrLogger.Error($"Device <>{Settings.Default.DeviceInfo}<> loading failed. Reset settigns.");
                     Settings.Default.Reset();
                     Settings.Default.Save();
                     await ShowWindow(WindowShowing.ChoosingAddingMethodDeviceAfterError);
@@ -55,26 +55,26 @@ namespace Eugene_Ambilight
             else
             {
                 await ShowWindow(WindowShowing.ChoosingAddingMethodDevice);
-                debugLogger.Info("App started without device");
+                DebugLogger.Info("App started without device");
             }
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            PointList.ForEach(x => x.Close());
+            _pointList.ForEach(x => x.Close());
         }
 
         #region Variables
-        private bool isLedsReversed = false;
-        private Logger errLogger { get; set; } = LogManager.GetLogger("errLogger");
-        private Logger debugLogger { get; set; } = LogManager.GetLogger("debugLogger");
-        private DeviceEntity targetDevice;
-        private byte TargetPlace = 0;
-        private readonly string[] LedPlaceVariants = new string[] { "Линия", "Свой", "Прямоугольник" };
-        private List<PointWindow> PointList = new();
-        private readonly ScreenEntity ScreenInfo = new();
-        private bool MockEnabled = true;
-        private MainClient mainClient = new();
+        private bool _isLedsReversed = false;
+        private Logger ErrLogger { get; set; } = LogManager.GetLogger("errLogger");
+        private Logger DebugLogger { get; set; } = LogManager.GetLogger("debugLogger");
+        private DeviceEntity _targetDevice;
+        private byte _targetPlace = 0;
+        private readonly string[] _ledPlaceVariants = new string[] { "Линия", "Свой", "Прямоугольник" };
+        private List<PointWindow> _pointList = new();
+        private readonly ScreenEntity _screenInfo = new();
+        private bool _mockEnabled = true;
+        private MainClient _mainClient = new();
         #endregion
         //private async void btnSend_Click(object sender, RoutedEventArgs e)
         //{
@@ -141,7 +141,7 @@ namespace Eugene_Ambilight
             if (ZoneManagementGrid.Visibility == Visibility.Visible)
             {
                 await Helper.AnimateDouble(AnimAction.Hide, AnimType.Height, ZoneManagementGrid);
-                PointList.ForEach(x => x.Hide());
+                _pointList.ForEach(x => x.Hide());
             }
                 
             if (DeviceGrid.Visibility == Visibility.Visible)
@@ -237,7 +237,7 @@ namespace Eugene_Ambilight
         /// </returns>
         private static async Task<bool> CheckIP(CheckTextBoxModel[] controls)
         {
-            bool errors = false;
+            var errors = false;
             foreach (var item in controls)
             {
                 if (item.errLabel.Visibility == Visibility.Visible && item.errLabel.IsVisible)
@@ -303,9 +303,9 @@ namespace Eugene_Ambilight
                 pingClient.BaseAddress = new Uri(address);
                 var response = await pingClient.GetAsync("/ping", cancellationTokenSource.Token);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.OK || MockEnabled)
+                if (response.StatusCode == System.Net.HttpStatusCode.OK || _mockEnabled)
                 {
-                    var jsonString = !MockEnabled 
+                    var jsonString = !_mockEnabled 
                         ? await response.Content.ReadAsStringAsync() 
                         : "{\"name\":\"ESP - 12F\",\"token\":\"ecu_9SYsb8rQNnaZ3P5wFzwyGt12W5vL\",\"leds\":30}";
                     if (!LoadDevice(jsonString)) 
@@ -354,14 +354,14 @@ namespace Eugene_Ambilight
                 {
                     Settings.Default.DeviceInfo = json;
                     Settings.Default.Save();
-                    targetDevice = device;
+                    _targetDevice = device;
                     //targetDevice = new DeviceEntity(device.Name, device.Token, 20);
                     return true;
                 }
             }
             catch(Exception ex)
             {
-                errLogger.Error(ex);
+                ErrLogger.Error(ex);
                 return false;
             }
         }
@@ -381,9 +381,9 @@ namespace Eugene_Ambilight
                 await Helper.CreateDelay(200);
                 if (await FindDevice(IPTextBox.Text))
                 {
-                    TSDeviceNameLabel.Text = targetDevice.Name;
-                    TSDeviceTokenLabel.Text = targetDevice.Token;
-                    TSDeviceLedsLabel.Text = Helper.GetEnding(targetDevice.Leds, Helper.LedsEnding);
+                    TSDeviceNameLabel.Text = _targetDevice.Name;
+                    TSDeviceTokenLabel.Text = _targetDevice.Token;
+                    TSDeviceLedsLabel.Text = Helper.GetEnding(_targetDevice.Leds, Helper.LedsEnding);
                     await ShowWindow(WindowShowing.ConfirmingFindedDevice);
                 }
             }
@@ -399,13 +399,13 @@ namespace Eugene_Ambilight
 
         private async void ConfirmDeviceBtn_Click(object sender, RoutedEventArgs e)
         {
-            Settings.Default.DeviceInfo = JsonConvert.SerializeObject(targetDevice);
+            Settings.Default.DeviceInfo = JsonConvert.SerializeObject(_targetDevice);
             Settings.Default.Save();
-            if(PointList.Count != targetDevice?.Leds)
+            if(_pointList.Count != _targetDevice?.Leds)
             {
-                PointList.Clear();
-                foreach (var item in Enumerable.Range(0, targetDevice?.Leds ?? 0))
-                    PointList.Add(new PointWindow(item + 1));
+                _pointList.Clear();
+                foreach (var item in Enumerable.Range(0, _targetDevice?.Leds ?? 0))
+                    _pointList.Add(new PointWindow(item + 1));
             }
             if (DeviceState.Fill.IsFrozen) DeviceState.Fill = new SolidColorBrush(Colors.IndianRed);
             await Helper.AnimateColor(Colors.LightGreen, DeviceState);
@@ -438,18 +438,18 @@ namespace Eugene_Ambilight
 
         private async void BackZoneBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (TargetPlace != 0) TargetPlace--; else TargetPlace = 2;
+            if (_targetPlace != 0) _targetPlace--; else _targetPlace = 2;
             await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, TargetPlaceLbl, Speed.Fast,
-                text: LedPlaceVariants[TargetPlace], withoutDelay: false, enableFade: false);
-            await Helper.AnimateRect(RectDemonstration, TargetPlace); PlacePoints();
+                text: _ledPlaceVariants[_targetPlace], withoutDelay: false, enableFade: false);
+            await Helper.AnimateRect(RectDemonstration, _targetPlace); PlacePoints();
         }
 
         private async void ForwardZoneBtn_Click(object sender, RoutedEventArgs e)
         {
-            if(TargetPlace != 2) TargetPlace++; else TargetPlace = 0;
+            if(_targetPlace != 2) _targetPlace++; else _targetPlace = 0;
             await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, TargetPlaceLbl, Speed.Fast, 
-                text: LedPlaceVariants[TargetPlace], withoutDelay: false, enableFade: false);
-            await Helper.AnimateRect(RectDemonstration, TargetPlace); PlacePoints();
+                text: _ledPlaceVariants[_targetPlace], withoutDelay: false, enableFade: false);
+            await Helper.AnimateRect(RectDemonstration, _targetPlace); PlacePoints();
         }
 
         private async void HideStartLedsButtons(AnimAction action)
@@ -462,57 +462,57 @@ namespace Eugene_Ambilight
 
         public async void PlacePoints()
         {
-            if (TargetPlace != 2)
+            if (_targetPlace != 2)
                 if (StartRightBottomRB.Opacity > 0.0)
                     HideStartLedsButtons(AnimAction.Hide);
-            if (isLedsReversed != ReverseLedsToggle.IsChecked.GetValueOrDefault(false))
+            if (_isLedsReversed != ReverseLedsToggle.IsChecked.GetValueOrDefault(false))
             {
-                PointList.Reverse();
-                isLedsReversed = !isLedsReversed;
+                _pointList.Reverse();
+                _isLedsReversed = !_isLedsReversed;
             }
-            if (TargetPlace == 0)
+            if (_targetPlace == 0)
             {
-                await Helper.PlaceWindows((WindowsPlace.CenterLine, PointList), ScreenInfo, targetDevice.Leds);
-            }else if(TargetPlace == 2)
+                await Helper.PlaceWindows((WindowsPlace.CenterLine, _pointList), _screenInfo, _targetDevice.Leds);
+            }else if(_targetPlace == 2)
             {
                 if (StartRightBottomRB.Opacity < 1.0)
                     HideStartLedsButtons(AnimAction.Show);
-                (int LedsX, int LedsY) = ScreenInfo.GetLedsCount(targetDevice.Leds);
+                (int LedsX, int LedsY) = _screenInfo.GetLedsCount(_targetDevice.Leds);
 
                 (WindowsPlace, List<PointWindow>) firstSide, secondSide, thirdSide, fourthSide;
 
                 if (StartLeftTopRB.IsChecked.GetValueOrDefault(false))
                 {
-                    firstSide = (WindowsPlace.Top, PointList.Take(LedsX / 2).ToList());
-                    secondSide = (WindowsPlace.Right, PointList.Skip(firstSide.Item2.Count).Take(LedsY / 2).ToList());
-                    thirdSide = (WindowsPlace.Bottom, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsX / 2).ToList());
-                    fourthSide = (WindowsPlace.Left, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsY / 2).ToList());
+                    firstSide = (WindowsPlace.Top, _pointList.Take(LedsX / 2).ToList());
+                    secondSide = (WindowsPlace.Right, _pointList.Skip(firstSide.Item2.Count).Take(LedsY / 2).ToList());
+                    thirdSide = (WindowsPlace.Bottom, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsX / 2).ToList());
+                    fourthSide = (WindowsPlace.Left, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsY / 2).ToList());
                 }
                 else if (StartRightTopRB.IsChecked.GetValueOrDefault(false))
                 {
-                    firstSide = (WindowsPlace.Right, PointList.Take(LedsY / 2).ToList());
-                    secondSide = (WindowsPlace.Bottom, PointList.Skip(firstSide.Item2.Count).Take(LedsX / 2).ToList());
-                    thirdSide = (WindowsPlace.Left, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsY / 2).ToList());
-                    fourthSide = (WindowsPlace.Top, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsX / 2).ToList());
+                    firstSide = (WindowsPlace.Right, _pointList.Take(LedsY / 2).ToList());
+                    secondSide = (WindowsPlace.Bottom, _pointList.Skip(firstSide.Item2.Count).Take(LedsX / 2).ToList());
+                    thirdSide = (WindowsPlace.Left, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsY / 2).ToList());
+                    fourthSide = (WindowsPlace.Top, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsX / 2).ToList());
                 }
                 else if (StartRightBottomRB.IsChecked.GetValueOrDefault(false))
                 {
-                    firstSide = (WindowsPlace.Bottom, PointList.Take(LedsX / 2).ToList());
-                    secondSide = (WindowsPlace.Left, PointList.Skip(firstSide.Item2.Count).Take(LedsY / 2).ToList());
-                    thirdSide = (WindowsPlace.Top, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsX / 2).ToList());
-                    fourthSide = (WindowsPlace.Right, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsY / 2).ToList());
+                    firstSide = (WindowsPlace.Bottom, _pointList.Take(LedsX / 2).ToList());
+                    secondSide = (WindowsPlace.Left, _pointList.Skip(firstSide.Item2.Count).Take(LedsY / 2).ToList());
+                    thirdSide = (WindowsPlace.Top, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsX / 2).ToList());
+                    fourthSide = (WindowsPlace.Right, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsY / 2).ToList());
                 }
                 else
                 {
-                    firstSide = (WindowsPlace.Left, PointList.Take(LedsY / 2).ToList());
-                    secondSide = (WindowsPlace.Top, PointList.Skip(firstSide.Item2.Count).Take(LedsX / 2).ToList());
-                    thirdSide = (WindowsPlace.Right, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsY / 2).ToList());
-                    fourthSide = (WindowsPlace.Bottom, PointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsX / 2).ToList());
+                    firstSide = (WindowsPlace.Left, _pointList.Take(LedsY / 2).ToList());
+                    secondSide = (WindowsPlace.Top, _pointList.Skip(firstSide.Item2.Count).Take(LedsX / 2).ToList());
+                    thirdSide = (WindowsPlace.Right, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count).Take(LedsY / 2).ToList());
+                    fourthSide = (WindowsPlace.Bottom, _pointList.Skip(firstSide.Item2.Count + secondSide.Item2.Count + thirdSide.Item2.Count).Take(LedsX / 2).ToList());
                 }
-                var topTask = Helper.PlaceWindows(firstSide, ScreenInfo, targetDevice.Leds);
-                var rightTask = Helper.PlaceWindows(secondSide, ScreenInfo, targetDevice.Leds);
-                var bottomTask = Helper.PlaceWindows(thirdSide, ScreenInfo, targetDevice.Leds);
-                var leftTask = Helper.PlaceWindows(fourthSide, ScreenInfo, targetDevice.Leds);
+                var topTask = Helper.PlaceWindows(firstSide, _screenInfo, _targetDevice.Leds);
+                var rightTask = Helper.PlaceWindows(secondSide, _screenInfo, _targetDevice.Leds);
+                var bottomTask = Helper.PlaceWindows(thirdSide, _screenInfo, _targetDevice.Leds);
+                var leftTask = Helper.PlaceWindows(fourthSide, _screenInfo, _targetDevice.Leds);
                 await Task.WhenAll(topTask, rightTask, bottomTask, leftTask);
             }
             Topmost = false;
@@ -524,7 +524,7 @@ namespace Eugene_Ambilight
 
         private void TopmostToggle_Click(object sender, RoutedEventArgs e)
         {
-            PointList.ForEach(item => item.Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false));
+            _pointList.ForEach(item => item.Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false));
             Topmost = TopmostToggle.IsChecked.GetValueOrDefault(false);
         }
 
@@ -541,7 +541,7 @@ namespace Eugene_Ambilight
             await Helper.AnimateDouble(AnimAction.HideAndShow, AnimType.Width, UpdateTB, Speed.Normal,
                 text: "Проверка обновлений", withoutDelay: false, enableFade: false);
             Helper.RotateAnimation(UpdateAnimAngle);
-            var update = await mainClient.CheckUpdate();
+            var update = await _mainClient.CheckUpdate();
             await Helper.CreateDelay(3000);
             Helper.RotateAnimation(UpdateAnimAngle, true);
             if (UpdateAvailableIcon.Fill.IsFrozen) UpdateAvailableIcon.Fill = new SolidColorBrush(Colors.Gray);

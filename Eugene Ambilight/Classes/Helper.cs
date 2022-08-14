@@ -21,8 +21,8 @@ namespace Eugene_Ambilight.Classes
     /// </summary>
     public static class Helper
     {
-        private static Logger errLogger { get; set; } = LogManager.GetLogger("errLogger");
-        private static Logger debugLogger { get; set; } = LogManager.GetLogger("debugLogger");
+        private static Logger ErrLogger { get; set; } = LogManager.GetLogger("errLogger");
+        private static Logger DebugLogger { get; set; } = LogManager.GetLogger("debugLogger");
         private static Dictionary<string, double> HeightDict = new();
         private static Dictionary<string, double> WidthDict = new();
         private static DoubleAnimation rotateAnimation = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromMilliseconds(1000)))
@@ -89,8 +89,8 @@ namespace Eugene_Ambilight.Classes
                             : color.Value == ColorText.Error 
                                 ? Colors.IndianRed 
                                 : Colors.LightGray);
-            DoubleAnimation animation = new DoubleAnimation();
-            double toValue = 0.0;
+            var animation = new DoubleAnimation();
+            var toValue = 0.0;
             switch (animType)
             {
                 case AnimType.Height: toValue = HeightDict[element.Name]; break;
@@ -232,7 +232,7 @@ namespace Eugene_Ambilight.Classes
                     break;
             }
             
-            debugLogger.Debug("\n" + JsonConvert.SerializeObject(new
+            DebugLogger.Debug("\n" + JsonConvert.SerializeObject(new
             {
                 WindowsPlace = windows.Item1.ToString(),
                 SizeX = sizeX,
@@ -248,11 +248,11 @@ namespace Eugene_Ambilight.Classes
             }, Formatting.Indented));
 
             List<Task> tasks = new();
-            for (int i = 0; i < windows.Item2.Count; i++)
+            for (var i = 0; i < windows.Item2.Count; i++)
             {
-                double topTo = calcTop.Invoke(i);
-                double leftTo = calcLeft.Invoke(i);
-                debugLogger.Debug($"Window: {windows.Item2[i].LedNumber.Content} X:{leftTo} Y:{topTo}");
+                var topTo = calcTop.Invoke(i);
+                var leftTo = calcLeft.Invoke(i);
+                DebugLogger.Debug($"Window: {windows.Item2[i].LedNumber.Content} X:{leftTo} Y:{topTo}");
                 windows.Item2[i].Width = sizeX;
                 windows.Item2[i].Height = sizeY;
                 if (!windows.Item2[i].IsVisible)

@@ -13,7 +13,7 @@ namespace Eugene_Ambilight.Integrations
     public class MainClient
     {
         private HttpClient _httpClient;
-        private Logger errLogger { get; set; } = LogManager.GetLogger("errLogger");
+        private Logger ErrLogger { get; set; } = LogManager.GetLogger("errLogger");
 
         public MainClient()
         {
@@ -44,7 +44,7 @@ namespace Eugene_Ambilight.Integrations
             }
             catch (Exception ex)
             {
-                errLogger.Error(ex);
+                ErrLogger.Error(ex);
             }
             return new BaseResponse<TResponse>();
         }
