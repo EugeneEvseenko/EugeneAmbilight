@@ -1,4 +1,5 @@
 ﻿using Eugene_Ambilight.Enums;
+using Eugene_Ambilight.Extentions;
 using Newtonsoft.Json;
 
 namespace Eugene_Ambilight.Classes.Models
@@ -10,7 +11,7 @@ namespace Eugene_Ambilight.Classes.Models
 
         public bool IsError => Code != ResultCode.Ok;
 
-        [JsonProperty("message")]
+        [JsonProperty("message")] 
         public string Message { get; set; }
 
         [JsonProperty("data")]
@@ -19,6 +20,22 @@ namespace Eugene_Ambilight.Classes.Models
         public BaseResponse()
         {
             Code = ResultCode.GenericError;
+        }
+        
+        public BaseResponse(TData data)
+        {
+            Code = ResultCode.GenericError;
+            Data = data;
+        }
+
+        public BaseResponse(ResultCode code)
+        {
+            Code = code;
+        }
+
+        public BaseResponse(ResultCode code, TData data) : this(code)
+        {
+            Data = data;
         }
     }
 }

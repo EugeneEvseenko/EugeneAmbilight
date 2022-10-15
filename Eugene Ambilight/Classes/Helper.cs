@@ -5,7 +5,9 @@ using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using Eugene_Ambilight.Extentions;
 
 namespace Eugene_Ambilight.Classes
 {
@@ -60,6 +63,13 @@ namespace Eugene_Ambilight.Classes
             EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut }
         };
 
+        public static long GetVersionCode()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            return fvi.FileVersion.ToInt32(0);
+        }
+        
         /// <summary>
         /// Анимирование объектов.
         /// </summary>

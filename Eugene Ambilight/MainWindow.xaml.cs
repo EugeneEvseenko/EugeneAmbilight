@@ -17,6 +17,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using Eugene_Ambilight.Integrations.Interfaces;
 
 namespace Eugene_Ambilight
 {
@@ -74,7 +75,7 @@ namespace Eugene_Ambilight
         private List<PointWindow> _pointList = new();
         private readonly ScreenEntity _screenInfo = new();
         private bool _mockEnabled = true;
-        private MainClient _mainClient = new();
+        private IMainClient _mainClient = new MainClient();
         #endregion
         //private async void btnSend_Click(object sender, RoutedEventArgs e)
         //{
@@ -567,7 +568,8 @@ namespace Eugene_Ambilight
 
         private async void UpdateViewBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            await CheckUpdate();
+            if (!_mainClient.isBusy)
+                await CheckUpdate();
         }
     }
 }
